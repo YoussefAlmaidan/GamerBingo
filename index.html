@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Board Competition</title>
+    <title>TASK BATTLE - Real-Time Competition</title>
     <style>
         * {
             margin: 0;
@@ -12,565 +12,492 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
-            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c1d 0%, #1a1a2e 50%, #16213e 100%);
             color: #ffffff;
+            min-height: 100vh;
             overflow-x: hidden;
         }
 
-        .app-container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Header Section */
         .header {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 2rem 0;
             position: sticky;
             top: 0;
-            z-index: 100;
+            background: rgba(13, 13, 29, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            z-index: 1000;
         }
 
         .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             max-width: 1400px;
             margin: 0 auto;
-            padding: 0 2rem;
         }
 
-        .title {
-            text-align: center;
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
-            text-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
+            text-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
         }
 
         .game-status {
-            text-align: center;
-            font-size: 1.2rem;
-            color: #a0a0a0;
-            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.9rem;
         }
 
-        .winner {
-            color: #00ff88;
-            font-size: 1.5rem;
-            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        .status-item {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
         }
 
-        /* Main Game Area */
-        .main-content {
-            flex: 1;
+        .container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 2rem;
             display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 3rem;
-            align-items: start;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            min-height: calc(100vh - 100px);
         }
 
-        /* Sidebar */
         .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            height: fit-content;
             position: sticky;
             top: 120px;
         }
 
-        .panel {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        .section {
+            margin-bottom: 2rem;
         }
 
-        .panel h3 {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .section h3 {
+            margin-bottom: 1rem;
+            color: #4ecdc4;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        /* Player Controls */
-        .player-input {
+        .join-form {
             display: flex;
+            flex-direction: column;
             gap: 1rem;
-            margin-bottom: 1.5rem;
         }
 
-        .player-input input {
-            flex: 1;
-            padding: 1rem 1.5rem;
+        .input-group {
+            position: relative;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
             background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
             color: #ffffff;
             font-size: 1rem;
             transition: all 0.3s ease;
         }
 
-        .player-input input:focus {
+        input:focus, select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+            border-color: #4ecdc4;
             background: rgba(255, 255, 255, 0.15);
-        }
-
-        .player-input input::placeholder {
-            color: #a0a0a0;
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
         }
 
         .btn {
-            padding: 1rem 2rem;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             color: white;
-            font-weight: 600;
-            font-size: 1rem;
+            font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
         }
 
-        .btn:active {
-            transform: translateY(0);
+        .players-list {
+            list-style: none;
         }
 
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn:hover::before {
-            left: 100%;
-        }
-
-        /* Player List */
-        .players-grid {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .player-card {
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            color: white;
-            font-weight: 600;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s ease;
-        }
-
-        .player-card:hover {
-            transform: scale(1.05);
-        }
-
-        /* Current Player Selector */
-        .current-player {
-            margin-top: 1rem;
-            padding: 1.5rem;
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: 12px;
-        }
-
-        .current-player select {
-            width: 100%;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            color: #ffffff;
-            font-size: 1rem;
-        }
-
-        .current-player select option {
-            background: #1a1a2e;
-            color: #ffffff;
-        }
-
-        /* Scoreboard */
-        .score-item {
+        .player-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid;
         }
 
-        .score-item:last-child {
-            border-bottom: none;
+        .leaderboard {
+            list-style: none;
         }
 
-        .player-name {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        .score-badge {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: 700;
-            min-width: 40px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        /* Game Board */
-        .board-container {
+        .leaderboard-item {
             display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .board {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 1.5rem;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .task-card {
-            aspect-ratio: 1;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            text-align: center;
-            min-height: 160px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            position: relative;
             overflow: hidden;
         }
 
-        .task-card::before {
+        .leaderboard-item::before {
             content: '';
             position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: var(--progress, 0%);
+            background: linear-gradient(90deg, rgba(78, 205, 196, 0.2), rgba(255, 107, 107, 0.2));
+            transition: width 0.5s ease;
+        }
+
+        .leaderboard-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .task-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            min-height: 160px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .task-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(78, 205, 196, 0.5);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .task-card.completed {
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 30px rgba(78, 205, 196, 0.2);
+        }
+
+        .task-card.completed::before {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 10px currentColor;
+            z-index: 2;
+        }
+
+        .task-card.editing {
+            border-color: #ffeb3b;
+            box-shadow: 0 0 20px rgba(255, 235, 59, 0.3);
+        }
+
+        .task-edit-input {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            color: white;
+            text-align: center;
+            font-size: 0.95rem;
+            resize: none;
+            outline: none;
+        }
+
+        .floating-admin {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .floating-admin:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .admin-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(13, 13, 29, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            z-index: 10000;
+            min-width: 300px;
+        }
+
+        .admin-panel h3 {
+            color: #ff6b6b;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .admin-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .admin-btn {
+            padding: 0.75rem;
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 10px;
+            color: #ff6b6b;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .admin-btn:hover {
+            background: rgba(255, 107, 107, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .winner-announcement {
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1), transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .task-card:hover::before {
-            opacity: 1;
-        }
-
-        .task-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            border-color: #667eea;
-            box-shadow: 0 20px 50px rgba(102, 126, 234, 0.3);
-        }
-
-        .task-card.completed {
-            border-width: 3px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-        }
-
-        .task-card.completed:hover {
-            transform: translateY(-4px) scale(1.01);
-        }
-
-        .task-card.edit-mode {
-            border-color: #ff6b6b;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { border-color: #ff6b6b; }
-            50% { border-color: #ff9999; }
-        }
-
-        .task-coordinate {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            background: rgba(0, 0, 0, 0.6);
-            color: #ffffff;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .task-text {
-            font-size: 1rem;
-            font-weight: 600;
-            line-height: 1.4;
-            color: #ffffff;
-            z-index: 2;
-            position: relative;
-        }
-
-        .task-completion {
-            position: absolute;
-            bottom: 12px;
-            left: 12px;
-            right: 12px;
             background: rgba(0, 0, 0, 0.8);
-            color: #ffffff;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+            backdrop-filter: blur(10px);
+        }
+
+        .winner-content {
             text-align: center;
+            padding: 3rem;
+            background: rgba(13, 13, 29, 0.95);
+            border-radius: 20px;
+            border: 2px solid #4ecdc4;
+            box-shadow: 0 0 50px rgba(78, 205, 196, 0.5);
         }
 
-        .edit-indicator {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: #ff6b6b;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .task-card.edit-mode .edit-indicator {
-            opacity: 1;
-        }
-
-        /* Admin Panel */
-        .dev-panel {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 107, 107, 0.3);
-            border-radius: 16px;
-            padding: 2rem;
-            display: none;
-            z-index: 1000;
-            min-width: 280px;
-        }
-
-        .dev-panel.active {
-            display: block;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(100%); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .dev-panel h4 {
-            color: #ff6b6b;
-            margin-bottom: 1.5rem;
-            font-size: 1.2rem;
-        }
-
-        .dev-panel .btn {
-            width: 100%;
+        .winner-content h2 {
+            font-size: 3rem;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, #ff6b6b, #ff5252);
-            font-size: 0.9rem;
-            padding: 0.8rem 1.5rem;
-        }
-
-        .dev-panel .btn:hover {
-            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
-        }
-
-        .dev-toggle {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border: none;
-            border-radius: 50%;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            opacity: 0.7;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-        }
-
-        .dev-toggle:hover {
-            opacity: 1;
-            transform: scale(1.1);
-            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         /* Responsive Design */
-        @media (max-width: 1200px) {
-            .main-content {
+        @media (max-width: 1024px) {
+            .container {
                 grid-template-columns: 1fr;
-                gap: 2rem;
+                gap: 1rem;
             }
             
             .sidebar {
                 position: static;
                 order: -1;
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 2rem;
+            }
+            
+            .game-board {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 0.5rem;
+            }
+            
+            .task-card {
+                min-height: 120px;
+                padding: 1rem;
+                font-size: 0.85rem;
             }
         }
 
         @media (max-width: 768px) {
-            .title {
-                font-size: 2rem;
-            }
-            
-            .main-content {
+            .container {
                 padding: 1rem;
             }
             
-            .board {
+            .header-content {
+                flex-direction: column;
                 gap: 1rem;
             }
             
+            .logo {
+                font-size: 1.5rem;
+            }
+            
+            .game-status {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .game-board {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
             .task-card {
-                min-height: 140px;
-                padding: 1rem;
-            }
-            
-            .task-text {
-                font-size: 0.9rem;
-            }
-            
-            .sidebar {
-                grid-template-columns: 1fr;
-            }
-            
-            .panel {
-                padding: 1.5rem;
+                min-height: 100px;
+                padding: 0.75rem;
+                font-size: 0.8rem;
             }
         }
 
         @media (max-width: 480px) {
+            .game-board {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+            
             .task-card {
-                min-height: 120px;
-                padding: 0.8rem;
+                min-height: 80px;
+                padding: 0.5rem;
+                font-size: 0.75rem;
             }
             
-            .task-text {
-                font-size: 0.8rem;
-            }
-            
-            .board {
-                gap: 0.8rem;
+            .container {
+                padding: 0.5rem;
             }
         }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <h1 class="title">🎯 TASK BATTLE</h1>
-                <div class="game-status" id="gameStatus">Connecting to game server...</div>
-            </div>
-        </header>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <!-- Player Controls -->
-                <div class="panel">
-                    <h3>👥 Players</h3>
-                    <div class="player-input">
-                        <input type="text" id="playerNameInput" placeholder="Enter your name">
-                        <button class="btn" onclick="addPlayer()">Join</button>
-                    </div>
-                    <div class="players-grid" id="playersList"></div>
-                    
-                    <div class="current-player" id="currentPlayerSection" style="display: none;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">You are:</label>
-                        <select id="currentPlayerSelect">
-                            <option value="">Select your name...</option>
-                        </select>
-                    </div>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">TASK BATTLE</div>
+            <div class="game-status">
+                <div class="status-item">
+                    Players: <span id="playerCount">0</span>
                 </div>
+                <div class="status-item">
+                    Completed: <span id="completedCount">0</span>/25
+                </div>
+                <div class="status-item">
+                    Status: <span id="gameStatus">Waiting for players</span>
+                </div>
+            </div>
+        </div>
+    </header>
 
-                <!-- Scoreboard -->
-                <div class="panel">
-                    <h3>🏆 Leaderboard</h3>
-                    <div id="scoresList"></div>
+    <div class="container">
+        <div class="sidebar">
+            <div class="section">
+                <h3>Join Game</h3>
+                <div class="join-form">
+                    <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
+                    <button class="btn" onclick="joinGame()">Join Battle</button>
                 </div>
             </div>
 
-            <!-- Game Board -->
-            <div class="board-container">
-                <div class="board" id="gameBoard"></div>
+            <div class="section">
+                <h3>Select Player</h3>
+                <select id="playerSelect">
+                    <option value="">Choose your player</option>
+                </select>
             </div>
-        </main>
 
-        <!-- Admin Panel -->
-        <div class="dev-panel" id="devPanel">
-            <h4>🛠️ Admin Control</h4>
-            <button class="btn" onclick="toggleTaskEditMode()">Toggle Task Editing</button>
-            <button class="btn" onclick="resetGame()">Reset Game</button>
-            <button class="btn" onclick="clearAllTasks()">Clear All Tasks</button>
-            <button class="btn" onclick="removeLastPlayer()">Remove Last Player</button>
-            <button class="btn" onclick="toggleDevMode()">Close Panel</button>
+            <div class="section">
+                <h3>Players</h3>
+                <ul id="playersList" class="players-list"></ul>
+            </div>
+
+            <div class="section">
+                <h3>Leaderboard</h3>
+                <ul id="leaderboard" class="leaderboard"></ul>
+            </div>
         </div>
 
-        <!-- Admin Toggle -->
-        <button class="dev-toggle" ondblclick="activateDevMode()">⚙️</button>
+        <div class="game-board" id="gameBoard"></div>
     </div>
 
-    <!-- FIREBASE INTEGRATION -->
+    <div class="floating-admin" id="adminToggle" onclick="handleAdminClick()">
+        ⚙️
+    </div>
+
+    <div class="admin-panel hidden" id="adminPanel">
+        <h3>Admin Panel</h3>
+        <div class="admin-actions">
+            <button class="admin-btn" onclick="resetGame()">Reset Entire Game</button>
+            <button class="admin-btn" onclick="clearTasks()">Clear All Tasks</button>
+            <button class="admin-btn" onclick="removeLastPlayer()">Remove Last Player</button>
+            <button class="admin-btn" onclick="toggleEditMode()">Toggle Edit Mode</button>
+            <button class="admin-btn" onclick="closeAdminPanel()">Close Panel</button>
+        </div>
+    </div>
+
     <script type="module">
-        // Import Firebase functions
+        // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
 
-        // Your Firebase configuration - REPLACE [your-api-key-here] with your actual API key
+        // Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyBMS5W47Xjn5G0mO2Me5xIKalLzv-ukLZA", // <-- PUT YOUR API KEY HERE
+            apiKey: "AIzaSyBMS5W47Xjn5G0mO2Me5xIKalLzv-ukLZA",
             authDomain: "gamerbingo-fc745.firebaseapp.com",
             databaseURL: "https://gamerbingo-fc745-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "gamerbingo-fc745",
@@ -583,521 +510,489 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // Game state - now synced with Firebase
-        let players = [];
-        let board = [];
-        let completedTasks = 0;
-        const totalTasks = 25;
-        let dataLoaded = { players: false, board: false };
+        // Game state
+        let currentPlayer = null;
+        let isEditMode = false;
+        let adminClickCount = 0;
+        let adminClickTimer = null;
 
-        // Sample tasks - you can replace these with your own
-        const sampleTasks = [
-            "Take a photo of something red",
-            "Find a funny cat meme",
-            "Do 15 jumping jacks",
+        // Default tasks
+        const defaultTasks = [
+            "Share your favorite movie quote",
+            "Name 3 things you're grateful for",
+            "Do 10 jumping jacks",
+            "Show your best dance move",
+            "Tell a dad joke",
+            "Draw something in 30 seconds",
+            "Sing your favorite song line",
             "Name 5 countries starting with 'S'",
-            "Draw a quick self-portrait",
-            "Find the weather in Tokyo",
-            "Sing 10 seconds of your favorite song",
-            "List 3 pizza toppings you've never tried",
-            "Take a photo of your workspace",
-            "Do your best robot dance",
-            "Find a random Wikipedia article",
-            "Name all 7 dwarfs from Snow White",
-            "Take a photo of something blue",
-            "Find a joke and tell it",
-            "Do 10 pushups (or modified)",
-            "List 5 movies from the 90s",
-            "Find your most embarrassing photo",
-            "Name 3 capital cities in Europe",
-            "Take a photo of your favorite snack",
-            "Do an impression of a celebrity",
-            "Find a song from the year you were born",
-            "List 4 things in your fridge",
-            "Take a photo of something circular",
-            "Name 5 dog breeds",
-            "Find the population of your city"
+            "Do your best animal impression",
+            "Share an embarrassing childhood story",
+            "Name all planets in our solar system",
+            "Do a 30-second plank",
+            "Recite the alphabet backwards",
+            "Share your dream vacation destination",
+            "Name 7 colors in the rainbow",
+            "Do 5 push-ups",
+            "Tell us about your first pet",
+            "Name 3 capital cities",
+            "Show your best magic trick",
+            "Share your biggest fear",
+            "Name 5 types of pasta",
+            "Do your best celebrity impression",
+            "Share your favorite childhood memory",
+            "Name 4 elements from periodic table",
+            "Tell us your superpower wish"
         ];
 
-        // Generate random colors
-        function generateRandomColor() {
-            const colors = [
-                '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-                '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
-                '#F8C471', '#82E0AA', '#F1948A', '#85929E', '#A569BD'
-            ];
-            return colors[Math.floor(Math.random() * colors.length)];
+        // Player colors
+        const playerColors = [
+            '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57',
+            '#ff9ff3', '#54a0ff', '#5f27cd', '#00d2d3', '#ff9f43',
+            '#10ac84', '#ee5a6f', '#0abde3', '#3867d6', '#8854d0'
+        ];
+
+        // Initialize game
+        function initializeGame() {
+            setupTaskBoard();
+            setupRealtimeListeners();
+            loadPlayerSelect();
         }
 
-        // FIREBASE LISTENERS - This is what makes it real-time!
-        
-        // Listen for board changes
-        function setupBoardListener() {
-            const boardRef = ref(database, 'board');
-            onValue(boardRef, (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    board = data;
-                } else {
-                    board = [];
-                }
-                dataLoaded.board = true;
-                updateBoardVisual();
-                updateGameStatus();
-            });
-        }
-
-        // Listen for players changes
-        function setupPlayersListener() {
-            const playersRef = ref(database, 'players');
-            onValue(playersRef, (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    players = Object.keys(data).map(key => ({
-                        id: key,
-                        ...data[key]
-                    }));
-                } else {
-                    players = [];
-                }
-                dataLoaded.players = true;
-                updatePlayersDisplay();
-                updateCurrentPlayerDropdown();
-                updateScoreboard();
-                updateGameStatus();
-                
-                // Show/hide current player section
-                if (players.length > 0) {
-                    document.getElementById('currentPlayerSection').style.display = 'block';
-                } else {
-                    document.getElementById('currentPlayerSection').style.display = 'none';
-                }
-                
-                // Update board visual again to apply colors properly
-                if (dataLoaded.board) {
-                    updateBoardVisual();
-                }
-            });
-        }
-
-        // Initialize board in Firebase
-        function initializeBoard() {
-            const boardRef = ref(database, 'board');
-            onValue(boardRef, (snapshot) => {
-                const data = snapshot.val();
-                if (!data) {
-                    // Create initial board structure
-                    const initialBoard = [];
-                    for (let i = 0; i < 25; i++) {
-                        initialBoard.push({
-                            task: sampleTasks[i] || `Task ${i + 1}`,
-                            completed: false,
-                            completedBy: null,
-                            completedAt: null
-                        });
-                    }
-                    set(boardRef, initialBoard);
-                }
-            }, { onlyOnce: true });
-        }
-
-        // Update board visual from Firebase data
-        function updateBoardVisual() {
+        // Setup task board
+        function setupTaskBoard() {
             const gameBoard = document.getElementById('gameBoard');
             gameBoard.innerHTML = '';
-            
-            completedTasks = 0;
-            
-            for (let row = 0; row < 5; row++) {
-                for (let col = 0; col < 5; col++) {
-                    const index = row * 5 + col;
-                    const taskData = board[index] || {};
-                    
-                    const card = document.createElement('div');
-                    card.className = 'task-card';
-                    if (devModeActive && taskEditMode) {
-                        card.className += ' edit-mode';
-                    }
-                    
-                    card.onclick = () => completeTask(row, col);
-                    card.ondblclick = () => {
-                        if (devModeActive && taskEditMode) {
-                            editTask(row, col);
-                        }
-                    };
-                    card.oncontextmenu = (e) => {
-                        e.preventDefault();
-                        if (devModeActive) {
-                            cancelTask(row, col);
-                        }
-                    };
-                    
-                    // Coordinate
-                    const coordinate = document.createElement('div');
-                    coordinate.className = 'task-coordinate';
-                    coordinate.textContent = `${String.fromCharCode(65 + row)}${col + 1}`;
-                    
-                    // Task text
-                    const taskText = document.createElement('div');
-                    taskText.className = 'task-text';
-                    taskText.textContent = taskData.task || sampleTasks[index] || `Task ${index + 1}`;
-                    
-                    // Edit indicator
-                    if (devModeActive && taskEditMode) {
-                        const editIndicator = document.createElement('div');
-                        editIndicator.className = 'edit-indicator';
-                        editIndicator.textContent = '✏️ EDIT';
-                        card.appendChild(editIndicator);
-                    }
-                    
-                    card.appendChild(coordinate);
-                    card.appendChild(taskText);
-                    
-                    // Handle completed tasks
-                    if (taskData.completed) {
-                        completedTasks++;
-                        const player = players.find(p => p.name === taskData.completedBy);
-                        if (player) {
-                            card.style.background = `linear-gradient(135deg, ${player.color}88, ${player.color}CC)`;
-                            card.style.borderColor = player.color;
-                            card.classList.add('completed');
-                            
-                            const completion = document.createElement('div');
-                            completion.className = 'task-completion';
-                            completion.textContent = `${taskData.completedBy} - ${taskData.completedAt}`;
-                            card.appendChild(completion);
-                        }
-                    }
-                    
-                    gameBoard.appendChild(card);
-                }
+
+            for (let i = 0; i < 25; i++) {
+                const taskCard = document.createElement('div');
+                taskCard.className = 'task-card';
+                taskCard.dataset.taskId = i;
+                taskCard.textContent = defaultTasks[i];
+                taskCard.onclick = () => handleTaskClick(i);
+                taskCard.ondblclick = () => handleTaskDoubleClick(i);
+                taskCard.oncontextmenu = (e) => handleTaskRightClick(e, i);
+                gameBoard.appendChild(taskCard);
             }
         }
 
-        // Add player to Firebase
-        async function addPlayer() {
-            const input = document.getElementById('playerNameInput');
-            const name = input.value.trim();
+        // Setup realtime listeners
+        function setupRealtimeListeners() {
+            // Listen to players
+            onValue(ref(database, 'players'), (snapshot) => {
+                const players = snapshot.val() || {};
+                updatePlayersList(players);
+                updatePlayerSelect(players);
+                updateLeaderboard(players);
+                updateGameStatus(players);
+            });
+
+            // Listen to tasks
+            onValue(ref(database, 'tasks'), (snapshot) => {
+                const tasks = snapshot.val() || {};
+                updateTaskBoard(tasks);
+                checkGameEnd();
+            });
+        }
+
+        // Join game
+        window.joinGame = function() {
+            const nameInput = document.getElementById('playerName');
+            const name = nameInput.value.trim();
             
             if (!name) {
                 alert('Please enter your name!');
                 return;
             }
+
+            const playerId = Date.now() + Math.random();
+            const colorIndex = Object.keys(getPlayersSync()).length % playerColors.length;
             
-            if (players.find(p => p.name === name)) {
-                alert('Player name already exists!');
-                return;
-            }
-            
-            const player = {
+            const playerData = {
                 name: name,
-                color: generateRandomColor(),
+                color: playerColors[colorIndex],
                 score: 0,
                 joinedAt: Date.now()
             };
-            
-            // Add to Firebase - this will sync to all devices instantly!
-            const playersRef = ref(database, 'players');
-            const newPlayerRef = push(playersRef);
-            await set(newPlayerRef, player);
-            
-            input.value = '';
+
+            set(ref(database, `players/${playerId}`), playerData).then(() => {
+                nameInput.value = '';
+                alert('Joined the game! Select yourself from the dropdown to start playing.');
+            });
+        };
+
+        // Handle task click
+        function handleTaskClick(taskId) {
+            if (!currentPlayer) {
+                alert('Please select your player first!');
+                return;
+            }
+
+            if (isEditMode) return;
+
+            const tasks = getTasksSync();
+            if (tasks[taskId]) return; // Already completed
+
+            const players = getPlayersSync();
+            const player = players[currentPlayer];
+            if (!player) return;
+
+            // Complete the task
+            const taskData = {
+                completedBy: currentPlayer,
+                playerName: player.name,
+                playerColor: player.color,
+                completedAt: Date.now(),
+                taskText: defaultTasks[taskId]
+            };
+
+            // Update task and player score
+            const updates = {};
+            updates[`tasks/${taskId}`] = taskData;
+            updates[`players/${currentPlayer}/score`] = (player.score || 0) + 1;
+
+            update(ref(database), updates);
         }
 
-        // Complete task in Firebase
-        async function completeTask(row, col) {
-            const index = row * 5 + col;
-            const task = board[index];
+        // Handle task double click (edit mode)
+        function handleTaskDoubleClick(taskId) {
+            if (!isEditMode) return;
             
-            if (!task || task.completed) {
-                alert('This task has already been completed!');
-                return;
-            }
+            const taskCard = document.querySelector(`[data-task-id="${taskId}"]`);
+            const currentText = taskCard.textContent;
             
-            if (players.length === 0) {
-                alert('No players have joined yet!');
-                return;
-            }
+            taskCard.classList.add('editing');
+            taskCard.innerHTML = `<textarea class="task-edit-input">${currentText}</textarea>`;
             
-            // Get current player from dropdown
-            const currentPlayerSelect = document.getElementById('currentPlayerSelect');
-            const currentPlayerName = currentPlayerSelect.value;
+            const textarea = taskCard.querySelector('.task-edit-input');
+            textarea.focus();
+            textarea.select();
             
-            if (!currentPlayerName) {
-                alert('Please select your name from the dropdown first!');
-                return;
-            }
+            const saveEdit = () => {
+                const newText = textarea.value.trim();
+                if (newText) {
+                    taskCard.textContent = newText;
+                    // Update in database if you want to sync custom tasks
+                }
+                taskCard.classList.remove('editing');
+            };
             
-            const player = players.find(p => p.name === currentPlayerName);
-            
-            if (!player) {
-                alert('Selected player not found!');
-                return;
-            }
-            
-            // Update task in Firebase - this syncs to everyone instantly!
-            const taskRef = ref(database, `board/${index}`);
-            await update(taskRef, {
-                completed: true,
-                completedBy: player.name,
-                completedAt: new Date().toLocaleTimeString()
-            });
-            
-            // Update player score in Firebase
-            const playerRef = ref(database, `players/${player.id}`);
-            await update(playerRef, {
-                score: (player.score || 0) + 1
-            });
+            textarea.onblur = saveEdit;
+            textarea.onkeydown = (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    saveEdit();
+                }
+            };
         }
 
-        // Update displays (called when Firebase data changes)
-        function updatePlayersDisplay() {
+        // Handle task right click (cancel completion)
+        function handleTaskRightClick(e, taskId) {
+            e.preventDefault();
+            if (!isEditMode) return;
+            
+            const tasks = getTasksSync();
+            if (!tasks[taskId]) return;
+            
+            if (confirm('Cancel this task completion?')) {
+                const playerWhoCompleted = tasks[taskId].completedBy;
+                const players = getPlayersSync();
+                
+                const updates = {};
+                updates[`tasks/${taskId}`] = null;
+                if (players[playerWhoCompleted]) {
+                    updates[`players/${playerWhoCompleted}/score`] = Math.max(0, (players[playerWhoCompleted].score || 1) - 1);
+                }
+                
+                update(ref(database), updates);
+            }
+        }
+
+        // Update task board
+        function updateTaskBoard(tasks) {
+            const taskCards = document.querySelectorAll('.task-card');
+            let completedCount = 0;
+            
+            taskCards.forEach((card, index) => {
+                card.classList.remove('completed');
+                card.style.background = '';
+                card.style.borderColor = '';
+                
+                if (tasks[index]) {
+                    card.classList.add('completed');
+                    card.style.background = `linear-gradient(135deg, ${tasks[index].playerColor}40, ${tasks[index].playerColor}20)`;
+                    card.style.borderColor = tasks[index].playerColor;
+                    completedCount++;
+                }
+            });
+            
+            document.getElementById('completedCount').textContent = completedCount;
+        }
+
+        // Update players list
+        function updatePlayersList(players) {
             const playersList = document.getElementById('playersList');
             playersList.innerHTML = '';
             
-            players.forEach(player => {
-                const card = document.createElement('div');
-                card.className = 'player-card';
-                card.style.background = `linear-gradient(135deg, ${player.color}, ${player.color}CC)`;
-                card.textContent = player.name;
-                playersList.appendChild(card);
+            Object.entries(players).forEach(([id, player]) => {
+                const li = document.createElement('li');
+                li.className = 'player-item';
+                li.style.borderLeftColor = player.color;
+                li.innerHTML = `
+                    <span>${player.name}</span>
+                    <span>${player.score || 0}</span>
+                `;
+                playersList.appendChild(li);
             });
+            
+            document.getElementById('playerCount').textContent = Object.keys(players).length;
         }
 
-        function updateCurrentPlayerDropdown() {
-            const select = document.getElementById('currentPlayerSelect');
-            const currentValue = select.value;
+        // Update player select dropdown
+        function updatePlayerSelect(players) {
+            const playerSelect = document.getElementById('playerSelect');
+            const currentValue = playerSelect.value;
             
-            select.innerHTML = '<option value="">Select your name...</option>';
+            playerSelect.innerHTML = '<option value="">Choose your player</option>';
             
-            players.forEach(player => {
+            Object.entries(players).forEach(([id, player]) => {
                 const option = document.createElement('option');
-                option.value = player.name;
+                option.value = id;
                 option.textContent = player.name;
-                select.appendChild(option);
+                option.style.color = player.color;
+                playerSelect.appendChild(option);
             });
             
-            if (currentValue && players.find(p => p.name === currentValue)) {
-                select.value = currentValue;
+            if (currentValue && players[currentValue]) {
+                playerSelect.value = currentValue;
             }
         }
 
-        function updateScoreboard() {
-            const scoresList = document.getElementById('scoresList');
-            scoresList.innerHTML = '';
+        // Load player select
+        function loadPlayerSelect() {
+            const playerSelect = document.getElementById('playerSelect');
+            playerSelect.onchange = function() {
+                currentPlayer = this.value;
+                if (currentPlayer) {
+                    const players = getPlayersSync();
+                    const player = players[currentPlayer];
+                    if (player) {
+                        document.title = `TASK BATTLE - ${player.name}`;
+                    }
+                }
+            };
+        }
+
+        // Update leaderboard
+        function updateLeaderboard(players) {
+            const leaderboard = document.getElementById('leaderboard');
+            leaderboard.innerHTML = '';
             
-            const sortedPlayers = players.slice().sort((a, b) => (b.score || 0) - (a.score || 0));
+            const sortedPlayers = Object.entries(players)
+                .sort(([,a], [,b]) => (b.score || 0) - (a.score || 0));
             
-            sortedPlayers.forEach((player, index) => {
-                const scoreItem = document.createElement('div');
-                scoreItem.className = 'score-item';
+            const maxScore = Math.max(...Object.values(players).map(p => p.score || 0), 1);
+            
+            sortedPlayers.forEach(([id, player], index) => {
+                const li = document.createElement('li');
+                li.className = 'leaderboard-item';
+                li.style.setProperty('--progress', `${((player.score || 0) / maxScore) * 100}%`);
                 
-                const playerName = document.createElement('span');
-                playerName.className = 'player-name';
-                playerName.textContent = `${index === 0 ? '👑 ' : ''}${player.name}`;
-                playerName.style.color = player.color;
+                const rank = index + 1;
+                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
                 
-                const score = document.createElement('span');
-                score.className = 'score-badge';
-                score.textContent = player.score || 0;
-                
-                scoreItem.appendChild(playerName);
-                scoreItem.appendChild(score);
-                scoresList.appendChild(scoreItem);
+                li.innerHTML = `
+                    <div class="leaderboard-content">
+                        <span>${medal} ${player.name}</span>
+                        <span style="color: ${player.color}; font-weight: bold;">${player.score || 0}</span>
+                    </div>
+                `;
+                leaderboard.appendChild(li);
             });
         }
 
-        function updateGameStatus() {
-            const gameStatus = document.getElementById('gameStatus');
+        // Update game status
+        function updateGameStatus(players) {
+            const playerCount = Object.keys(players).length;
+            const statusElement = document.getElementById('gameStatus');
             
-            if (players.length === 0) {
-                gameStatus.textContent = 'Waiting for players to join the battle...';
-                return;
+            if (playerCount === 0) {
+                statusElement.textContent = 'Waiting for players';
+            } else if (playerCount === 1) {
+                statusElement.textContent = 'Waiting for more players';
+            } else {
+                statusElement.textContent = 'Battle in progress!';
             }
+        }
+
+        // Check game end
+        function checkGameEnd() {
+            const tasks = getTasksSync();
+            const completedTasks = Object.keys(tasks).length;
             
-            if (completedTasks === totalTasks) {
-                const winner = players.reduce((prev, current) => 
-                    ((prev.score || 0) > (current.score || 0)) ? prev : current
+            if (completedTasks === 25) {
+                const players = getPlayersSync();
+                const winner = Object.entries(players).reduce((prev, current) => 
+                    (current[1].score || 0) > (prev[1].score || 0) ? current : prev
                 );
-                gameStatus.innerHTML = `<span class="winner">🎉 VICTORY! ${winner.name} wins with ${winner.score || 0} tasks completed!</span>`;
-            } else {
-                gameStatus.textContent = `${completedTasks}/${totalTasks} tasks completed • ${players.length} players battling`;
+                
+                showWinnerAnnouncement(winner[1]);
             }
         }
 
-        // Admin Functions (Firebase-enabled)
-        let devModeActive = false;
-        let taskEditMode = false;
-        let clickCount = 0;
-
-        function activateDevMode() {
-            clickCount++;
-            if (clickCount >= 2) {
-                devModeActive = true;
-                document.getElementById('devPanel').classList.add('active');
-                clickCount = 0;
-            }
-            setTimeout(() => { clickCount = 0; }, 1000);
+        // Show winner announcement
+        function showWinnerAnnouncement(winner) {
+            const announcement = document.createElement('div');
+            announcement.className = 'winner-announcement';
+            announcement.innerHTML = `
+                <div class="winner-content">
+                    <h2>🎉 VICTORY! 🎉</h2>
+                    <h3 style="color: ${winner.color}; font-size: 2rem; margin-bottom: 1rem;">
+                        ${winner.name}
+                    </h3>
+                    <p style="font-size: 1.2rem; margin-bottom: 2rem;">
+                        Score: ${winner.score} tasks completed!
+                    </p>
+                    <button class="btn" onclick="this.parentElement.parentElement.remove()">
+                        Continue Playing
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(announcement);
+            
+            setTimeout(() => {
+                if (announcement.parentElement) {
+                    announcement.remove();
+                }
+            }, 10000);
         }
 
-        function toggleDevMode() {
-            devModeActive = !devModeActive;
-            taskEditMode = false;
-            const panel = document.getElementById('devPanel');
-            if (devModeActive) {
-                panel.classList.add('active');
-            } else {
-                panel.classList.remove('active');
+        // Admin functions
+        window.handleAdminClick = function() {
+            adminClickCount++;
+            
+            if (adminClickTimer) {
+                clearTimeout(adminClickTimer);
             }
-            updateBoardVisual();
-        }
-
-        function toggleTaskEditMode() {
-            if (!devModeActive) return;
             
-            taskEditMode = !taskEditMode;
-            updateBoardVisual();
+            adminClickTimer = setTimeout(() => {
+                adminClickCount = 0;
+            }, 1000);
             
-            if (taskEditMode) {
-                alert('Task editing enabled! Double-click any task to edit it.');
-            } else {
-                alert('Task editing disabled.');
+            if (adminClickCount === 3) {
+                document.getElementById('adminPanel').classList.remove('hidden');
+                adminClickCount = 0;
             }
-        }
+        };
 
-        async function editTask(row, col) {
-            if (!devModeActive || !taskEditMode) return;
-            
-            const index = row * 5 + col;
-            const task = board[index];
-            const currentText = task?.task || sampleTasks[index] || `Task ${index + 1}`;
-            
-            const newText = prompt('Edit task text:', currentText);
-            
-            if (newText !== null && newText.trim() !== '' && newText !== currentText) {
-                const taskRef = ref(database, `board/${index}`);
-                await update(taskRef, {
-                    task: newText.trim()
+        window.closeAdminPanel = function() {
+            document.getElementById('adminPanel').classList.add('hidden');
+        };
+
+        window.resetGame = function() {
+            if (confirm('Reset entire game? This will remove all players and tasks!')) {
+                const updates = {
+                    players: null,
+                    tasks: null
+                };
+                update(ref(database), updates);
+                currentPlayer = null;
+                document.getElementById('playerSelect').value = '';
+                closeAdminPanel();
+            }
+        };
+
+        window.clearTasks = function() {
+            if (confirm('Clear all completed tasks?')) {
+                // Reset all player scores to 0
+                const players = getPlayersSync();
+                const updates = { tasks: null };
+                
+                Object.keys(players).forEach(playerId => {
+                    updates[`players/${playerId}/score`] = 0;
                 });
+                
+                update(ref(database), updates);
+                closeAdminPanel();
             }
-        }
+        };
 
-        async function resetGame() {
-            if (!confirm('Are you sure you want to reset the entire game? This will clear all players and tasks!')) {
-                return;
-            }
+        window.removeLastPlayer = function() {
+            const players = getPlayersSync();
+            const playerEntries = Object.entries(players);
             
-            await set(ref(database, 'players'), null);
-            await set(ref(database, 'board'), null);
-            initializeBoard();
-            
-            alert('Game has been reset!');
-        }
-
-        async function clearAllTasks() {
-            if (!confirm('Are you sure you want to clear all completed tasks?')) {
-                return;
-            }
-            
-            const updates = {};
-            for (let i = 0; i < 25; i++) {
-                updates[`board/${i}/completed`] = false;
-                updates[`board/${i}/completedBy`] = null;
-                updates[`board/${i}/completedAt`] = null;
-            }
-            
-            players.forEach(player => {
-                updates[`players/${player.id}/score`] = 0;
-            });
-            
-            await update(ref(database), updates);
-            
-            alert('All tasks have been cleared!');
-        }
-
-        async function removeLastPlayer() {
-            if (players.length === 0) {
+            if (playerEntries.length === 0) {
                 alert('No players to remove!');
                 return;
             }
             
-            const lastPlayer = players[players.length - 1];
+            // Sort by joinedAt to find the last player
+            const lastPlayer = playerEntries.sort(([,a], [,b]) => b.joinedAt - a.joinedAt)[0];
+            const [lastPlayerId, lastPlayerData] = lastPlayer;
             
-            await remove(ref(database, `players/${lastPlayer.id}`));
-            
-            const updates = {};
-            board.forEach((task, index) => {
-                if (task.completedBy === lastPlayer.name) {
-                    updates[`board/${index}/completed`] = false;
-                    updates[`board/${index}/completedBy`] = null;
-                    updates[`board/${index}/completedAt`] = null;
+            if (confirm(`Remove ${lastPlayerData.name} and their completed tasks?`)) {
+                // Remove tasks completed by this player
+                const tasks = getTasksSync();
+                const updates = {};
+                
+                Object.entries(tasks).forEach(([taskId, task]) => {
+                    if (task.completedBy === lastPlayerId) {
+                        updates[`tasks/${taskId}`] = null;
+                    }
+                });
+                
+                // Remove the player
+                updates[`players/${lastPlayerId}`] = null;
+                
+                update(ref(database), updates);
+                
+                // If this was the current player, reset selection
+                if (currentPlayer === lastPlayerId) {
+                    currentPlayer = null;
+                    document.getElementById('playerSelect').value = '';
                 }
-            });
-            
-            if (Object.keys(updates).length > 0) {
-                await update(ref(database), updates);
+                
+                closeAdminPanel();
             }
+        };
+
+        window.toggleEditMode = function() {
+            isEditMode = !isEditMode;
+            const gameBoard = document.getElementById('gameBoard');
             
-            alert(`Removed player: ${lastPlayer.name}`);
+            if (isEditMode) {
+                gameBoard.style.border = '2px dashed #ffeb3b';
+                alert('Edit mode ON: Double-click tasks to edit, right-click completed tasks to cancel them.');
+            } else {
+                gameBoard.style.border = 'none';
+                alert('Edit mode OFF');
+            }
+            closeAdminPanel();
+        };
+
+        // Utility functions to get current data synchronously
+        function getPlayersSync() {
+            // This is a simplified approach - in a real app you'd maintain state
+            return window.gameState?.players || {};
         }
 
-        async function cancelTask(row, col) {
-            if (!devModeActive) return;
-            
-            const index = row * 5 + col;
-            const task = board[index];
-            
-            if (!task || !task.completed) {
-                alert('This task is not completed yet!');
-                return;
-            }
-            
-            if (!confirm(`Cancel task completed by ${task.completedBy}?`)) {
-                return;
-            }
-            
-            const player = players.find(p => p.name === task.completedBy);
-            
-            const updates = {};
-            updates[`board/${index}/completed`] = false;
-            updates[`board/${index}/completedBy`] = null;
-            updates[`board/${index}/completedAt`] = null;
-            
-            if (player) {
-                updates[`players/${player.id}/score`] = Math.max(0, (player.score || 0) - 1);
-            }
-            
-            await update(ref(database), updates);
+        function getTasksSync() {
+            return window.gameState?.tasks || {};
         }
 
-        // Make functions global for HTML onclick handlers
-        window.addPlayer = addPlayer;
-        window.resetGame = resetGame;
-        window.clearAllTasks = clearAllTasks;
-        window.removeLastPlayer = removeLastPlayer;
-        window.toggleDevMode = toggleDevMode;
-        window.activateDevMode = activateDevMode;
-        window.toggleTaskEditMode = toggleTaskEditMode;
-
-        // Enter key support
-        document.getElementById('playerNameInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                addPlayer();
-            }
+        // Maintain game state for sync functions
+        window.gameState = { players: {}, tasks: {} };
+        
+        onValue(ref(database, 'players'), (snapshot) => {
+            window.gameState.players = snapshot.val() || {};
+        });
+        
+        onValue(ref(database, 'tasks'), (snapshot) => {
+            window.gameState.tasks = snapshot.val() || {};
         });
 
-        // INITIALIZE THE REAL-TIME MULTIPLAYER GAME
-        console.log('🔥 Starting Firebase-powered multiplayer game...');
-        initializeBoard();
-        setupBoardListener();
-        setupPlayersListener();
-        
-        // Update status when connected
-        setTimeout(() => {
-            if (players.length === 0) {
-                document.getElementById('gameStatus').textContent = 'Ready to battle! Join the game to start.';
-            }
-        }, 1500);
+        // Initialize the game
+        initializeGame();
     </script>
 </body>
 </html>
