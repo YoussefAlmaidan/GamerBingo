@@ -287,6 +287,28 @@
             opacity: 1;
         }
 
+        .current-player-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e6fffa;
+            border-radius: 10px;
+            border: 2px solid #4fd1c7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .current-player-section select {
+            margin-left: 10px;
+            min-width: 150px;
+        }
+
+        .current-player-section select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
         @media (max-width: 768px) {
             .board-container {
                 flex-direction: column;
@@ -312,6 +334,13 @@
                 <button onclick="addPlayer()">Join Game</button>
             </div>
             <div class="players-list" id="playersList"></div>
+            
+            <div class="current-player-section" id="currentPlayerSection" style="display: none;">
+                <label for="currentPlayerSelect" style="font-weight: bold; margin-right: 10px;">You are:</label>
+                <select id="currentPlayerSelect" style="padding: 8px; border-radius: 6px; border: 2px solid #cbd5e0; font-size: 16px;">
+                    <option value="">Select your name...</option>
+                </select>
+            </div>
         </div>
 
         <div class="game-status" id="gameStatus">
@@ -451,8 +480,14 @@
             input.value = '';
             
             updatePlayersDisplay();
+            updateCurrentPlayerDropdown();
             updateScoreboard();
             updateGameStatus();
+            
+            // Show current player section when first player joins
+            if (players.length === 1) {
+                document.getElementById('currentPlayerSection').style.display = 'flex';
+            }
         }
 
         // Complete task
@@ -470,13 +505,19 @@
                 return;
             }
             
-            // For demo purposes, we'll simulate player selection
-            // In a real implementation, you'd want to identify the current player
-            const playerName = prompt('Enter your name to claim this task:');
-            const player = players.find(p => p.name === playerName);
+            // Get current player from dropdown
+            const currentPlayerSelect = document.getElementById('currentPlayerSelect');
+            const currentPlayerName = currentPlayerSelect.value;
+            
+            if (!currentPlayerName) {
+                alert('Please select your name from the dropdown first!');
+                return;
+            }
+            
+            const player = players.find(p => p.name === currentPlayerName);
             
             if (!player) {
-                alert('Player not found! Make sure you joined the game first.');
+                alert('Selected player not found!');
                 return;
             }
             
@@ -503,7 +544,28 @@
             updateGameStatus();
         }
 
-        // Update players display
+        // Update current player dropdown
+        function updateCurrentPlayerDropdown() {
+            const select = document.getElementById('currentPlayerSelect');
+            const currentValue = select.value;
+            
+            // Clear existing options except the first one
+            select.innerHTML = '<option value="">Select your name...</option>';
+            
+            // Add all players to dropdown
+            players.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player.name;
+                option.textContent = player.name;
+                option.style.color = player.color;
+                select.appendChild(option);
+            });
+            
+            // Restore previous selection if still valid
+            if (currentValue && players.find(p => p.name === currentValue)) {
+                select.value = currentValue;
+            }
+        }
         function updatePlayersDisplay() {
             const playersList = document.getElementById('playersList');
             playersList.innerHTML = '';
@@ -609,6 +671,11 @@
             // Clear displays
             document.getElementById('playersList').innerHTML = '';
             document.getElementById('scoresList').innerHTML = '';
+            document.getElementById('currentPlayerSection').style.display = 'none';
+            
+            // Reset dropdown
+            const select = document.getElementById('currentPlayerSelect');
+            select.innerHTML = '<option value="">Select your name...</option>';
             
             // Reinitialize board
             initializeBoard();
@@ -687,8 +754,14 @@
             });
             
             updatePlayersDisplay();
+            updateCurrentPlayerDropdown();
             updateScoreboard();
             updateGameStatus();
+            
+            // Hide current player section if no players left
+            if (players.length === 0) {
+                document.getElementById('currentPlayerSection').style.display = 'none';
+            }
             
             alert(`Removed player: ${removedPlayer.name}`);
         }
