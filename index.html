@@ -12,251 +12,219 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
             min-height: 100vh;
-            padding: 20px;
-            color: #333;
+            color: #ffffff;
+            overflow-x: hidden;
         }
 
-        .container {
-            max-width: 1200px;
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Section */
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 2rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 0 2rem;
         }
 
-        h1 {
+        .title {
             text-align: center;
-            margin-bottom: 30px;
-            color: #4a5568;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
         }
 
-        .player-section {
-            background: #f7fafc;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            border: 2px solid #e2e8f0;
+        .game-status {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #a0a0a0;
+            margin-bottom: 2rem;
         }
 
+        .winner {
+            color: #00ff88;
+            font-size: 1.5rem;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        /* Main Game Area */
+        .main-content {
+            flex: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            position: sticky;
+            top: 120px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Player Controls */
         .player-input {
             display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
 
-        input[type="text"] {
-            padding: 12px 16px;
-            border: 2px solid #cbd5e0;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-            min-width: 200px;
+        .player-input input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
         }
 
-        input[type="text"]:focus {
+        .player-input input:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+            background: rgba(255, 255, 255, 0.15);
         }
 
-        button {
-            padding: 12px 24px;
+        .player-input input::placeholder {
+            color: #a0a0a0;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: 12px;
+            color: white;
             font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        button:hover {
+        .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
 
-        button:active {
+        .btn:active {
             transform: translateY(0);
         }
 
-        .players-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 15px;
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
         }
 
-        .player-badge {
-            padding: 8px 16px;
-            border-radius: 25px;
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        .btn:hover::before {
+            left: 100%;
         }
 
-        .current-player-section {
-            margin-top: 15px;
-            padding: 15px;
-            background: #e6fffa;
-            border-radius: 10px;
-            border: 2px solid #4fd1c7;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .current-player-section select {
-            margin-left: 10px;
-            min-width: 150px;
-            padding: 8px;
-            border-radius: 6px;
-            border: 2px solid #cbd5e0;
-            font-size: 16px;
-        }
-
-        .current-player-section select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .board-container {
-            display: flex;
-            gap: 30px;
-            align-items: flex-start;
-        }
-
-        .board {
+        /* Player List */
+        .players-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 15px;
-            flex: 1;
-            max-width: 800px;
-            margin: 0 auto;
+            gap: 1rem;
         }
 
-        .task-cell {
-            aspect-ratio: 1;
-            border: 3px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            min-height: 140px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .task-cell:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 35px rgba(0,0,0,0.2);
-            border-color: #667eea;
-        }
-
-        .task-cell.completed {
-            cursor: default;
-            transform: none;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-        }
-
-        .task-cell.completed:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-        }
-
-        .task-cell.dev-mode:hover {
-            border-color: #ff6b6b;
-        }
-
-        .task-text {
-            font-size: 16px;
-            font-weight: 600;
-            line-height: 1.4;
-            text-align: center;
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 0;
-            word-wrap: break-word;
-            hyphens: auto;
-        }
-
-        .task-info {
-            font-size: 12px;
-            text-align: center;
-            margin-top: 12px;
+        .player-card {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
             color: white;
-            background: rgba(0,0,0,0.4);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-weight: bold;
-        }
-
-        .coordinates {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            font-size: 12px;
-            color: #999;
-            font-weight: bold;
-            background: rgba(255,255,255,0.8);
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-
-        .edit-indicator {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            font-size: 12px;
-            color: #ff6b6b;
-            font-weight: bold;
-            background: rgba(255,255,255,0.9);
-            padding: 2px 6px;
-            border-radius: 4px;
-            display: none;
-        }
-
-        .task-cell.dev-mode .edit-indicator {
-            display: block;
-        }
-
-        .scoreboard {
-            background: #f7fafc;
-            padding: 20px;
-            border-radius: 15px;
-            min-width: 250px;
-            border: 2px solid #e2e8f0;
-        }
-
-        .scoreboard h3 {
-            margin-bottom: 15px;
-            color: #4a5568;
+            font-weight: 600;
             text-align: center;
-            font-size: 1.3em;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
         }
 
+        .player-card:hover {
+            transform: scale(1.05);
+        }
+
+        /* Current Player Selector */
+        .current-player {
+            margin-top: 1rem;
+            padding: 1.5rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+        }
+
+        .current-player select {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1rem;
+        }
+
+        .current-player select option {
+            background: #1a1a2e;
+            color: #ffffff;
+        }
+
+        /* Scoreboard */
         .score-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .score-item:last-child {
@@ -264,179 +232,334 @@
         }
 
         .player-name {
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 1.1rem;
         }
 
-        .score {
-            background: #667eea;
+        .score-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            padding: 4px 10px;
-            border-radius: 15px;
-            font-weight: bold;
-            min-width: 30px;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            min-width: 40px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Game Board */
+        .board-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1.5rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .task-card {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 160px;
+            overflow: hidden;
+        }
+
+        .task-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .task-card:hover::before {
+            opacity: 1;
+        }
+
+        .task-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: #667eea;
+            box-shadow: 0 20px 50px rgba(102, 126, 234, 0.3);
+        }
+
+        .task-card.completed {
+            border-width: 3px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .task-card.completed:hover {
+            transform: translateY(-4px) scale(1.01);
+        }
+
+        .task-card.edit-mode {
+            border-color: #ff6b6b;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { border-color: #ff6b6b; }
+            50% { border-color: #ff9999; }
+        }
+
+        .task-coordinate {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #ffffff;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .task-text {
+            font-size: 1rem;
+            font-weight: 600;
+            line-height: 1.4;
+            color: #ffffff;
+            z-index: 2;
+            position: relative;
+        }
+
+        .task-completion {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
             text-align: center;
         }
 
-        .game-status {
-            text-align: center;
-            margin: 20px 0;
-            font-size: 18px;
-            font-weight: bold;
+        .edit-indicator {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #ff6b6b;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        .winner {
-            color: #38a169;
-            font-size: 24px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        .task-card.edit-mode .edit-indicator {
+            opacity: 1;
         }
 
+        /* Admin Panel */
         .dev-panel {
             position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.9);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
             display: none;
             z-index: 1000;
-            min-width: 200px;
+            min-width: 280px;
         }
 
         .dev-panel.active {
             display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .dev-panel h4 {
-            margin-bottom: 10px;
             color: #ff6b6b;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
         }
 
-        .dev-panel button {
-            margin: 5px 0;
+        .dev-panel .btn {
             width: 100%;
-            background: #ff6b6b;
-            font-size: 12px;
-            padding: 8px;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ff6b6b, #ff5252);
+            font-size: 0.9rem;
+            padding: 0.8rem 1.5rem;
         }
 
-        .dev-panel button:hover {
-            background: #ff5252;
+        .dev-panel .btn:hover {
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
         }
 
         .dev-toggle {
             position: fixed;
-            bottom: 10px;
-            right: 10px;
-            width: 30px;
-            height: 30px;
-            background: rgba(0,0,0,0.1);
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             border: none;
             border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
             cursor: pointer;
-            opacity: 0.3;
-            transition: opacity 0.3s;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
 
         .dev-toggle:hover {
             opacity: 1;
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
         }
 
-        @media (max-width: 1024px) {
-            .board-container {
-                flex-direction: column;
-                gap: 30px;
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
             }
             
-            .scoreboard {
+            .sidebar {
                 position: static;
                 order: -1;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 2rem;
             }
         }
 
         @media (max-width: 768px) {
-            .container {
-                padding: 20px;
+            .title {
+                font-size: 2rem;
+            }
+            
+            .main-content {
+                padding: 1rem;
             }
             
             .board {
-                gap: 12px;
-                max-width: 100%;
+                gap: 1rem;
             }
             
-            .task-cell {
-                min-height: 120px;
-                padding: 15px;
+            .task-card {
+                min-height: 140px;
+                padding: 1rem;
             }
             
             .task-text {
-                font-size: 14px;
+                font-size: 0.9rem;
             }
             
-            .coordinates {
-                font-size: 10px;
+            .sidebar {
+                grid-template-columns: 1fr;
+            }
+            
+            .panel {
+                padding: 1.5rem;
             }
         }
 
         @media (max-width: 480px) {
-            h1 {
-                font-size: 2em;
-            }
-            
-            .task-cell {
-                min-height: 100px;
-                padding: 12px;
+            .task-card {
+                min-height: 120px;
+                padding: 0.8rem;
             }
             
             .task-text {
-                font-size: 13px;
+                font-size: 0.8rem;
+            }
+            
+            .board {
+                gap: 0.8rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎯 Task Board Competition</h1>
-        
-        <div class="player-section">
-            <div class="player-input">
-                <input type="text" id="playerNameInput" placeholder="Enter your name to join">
-                <button onclick="addPlayer()">Join Game</button>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="title">🎯 TASK BATTLE</h1>
+                <div class="game-status" id="gameStatus">Connecting to game server...</div>
             </div>
-            <div class="players-list" id="playersList"></div>
-            
-            <div class="current-player-section" id="currentPlayerSection" style="display: none;">
-                <label for="currentPlayerSelect" style="font-weight: bold; margin-right: 10px;">You are:</label>
-                <select id="currentPlayerSelect">
-                    <option value="">Select your name...</option>
-                </select>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Player Controls -->
+                <div class="panel">
+                    <h3>👥 Players</h3>
+                    <div class="player-input">
+                        <input type="text" id="playerNameInput" placeholder="Enter your name">
+                        <button class="btn" onclick="addPlayer()">Join</button>
+                    </div>
+                    <div class="players-grid" id="playersList"></div>
+                    
+                    <div class="current-player" id="currentPlayerSection" style="display: none;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">You are:</label>
+                        <select id="currentPlayerSelect">
+                            <option value="">Select your name...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Scoreboard -->
+                <div class="panel">
+                    <h3>🏆 Leaderboard</h3>
+                    <div id="scoresList"></div>
+                </div>
             </div>
-        </div>
 
-        <div class="game-status" id="gameStatus">
-            Connecting to game server...
-        </div>
-
-        <div class="board-container">
-            <div class="board" id="gameBoard"></div>
-            <div class="scoreboard">
-                <h3>🏆 Scoreboard</h3>
-                <div id="scoresList"></div>
+            <!-- Game Board -->
+            <div class="board-container">
+                <div class="board" id="gameBoard"></div>
             </div>
-        </div>
+        </main>
 
-        <!-- Dev Panel -->
+        <!-- Admin Panel -->
         <div class="dev-panel" id="devPanel">
-            <h4>🛠️ Admin Panel</h4>
-            <button onclick="toggleTaskEditMode()">Toggle Task Editing</button>
-            <button onclick="resetGame()">Reset Entire Game</button>
-            <button onclick="clearAllTasks()">Clear All Tasks</button>
-            <button onclick="removeLastPlayer()">Remove Last Player</button>
-            <button onclick="toggleDevMode()">Hide Panel</button>
+            <h4>🛠️ Admin Control</h4>
+            <button class="btn" onclick="toggleTaskEditMode()">Toggle Task Editing</button>
+            <button class="btn" onclick="resetGame()">Reset Game</button>
+            <button class="btn" onclick="clearAllTasks()">Clear All Tasks</button>
+            <button class="btn" onclick="removeLastPlayer()">Remove Last Player</button>
+            <button class="btn" onclick="toggleDevMode()">Close Panel</button>
         </div>
 
-        <!-- Secret Dev Toggle (double-click to activate) -->
-        <button class="dev-toggle" id="devToggle" ondblclick="activateDevMode()">⚙️</button>
+        <!-- Admin Toggle -->
+        <button class="dev-toggle" ondblclick="activateDevMode()">⚙️</button>
     </div>
 
     <!-- FIREBASE INTEGRATION -->
@@ -465,6 +588,7 @@
         let board = [];
         let completedTasks = 0;
         const totalTasks = 25;
+        let dataLoaded = { players: false, board: false };
 
         // Sample tasks - you can replace these with your own
         const sampleTasks = [
@@ -514,9 +638,12 @@
                 const data = snapshot.val();
                 if (data) {
                     board = data;
-                    updateBoardVisual();
-                    updateGameStatus();
+                } else {
+                    board = [];
                 }
+                dataLoaded.board = true;
+                updateBoardVisual();
+                updateGameStatus();
             });
         }
 
@@ -533,6 +660,7 @@
                 } else {
                     players = [];
                 }
+                dataLoaded.players = true;
                 updatePlayersDisplay();
                 updateCurrentPlayerDropdown();
                 updateScoreboard();
@@ -540,9 +668,14 @@
                 
                 // Show/hide current player section
                 if (players.length > 0) {
-                    document.getElementById('currentPlayerSection').style.display = 'flex';
+                    document.getElementById('currentPlayerSection').style.display = 'block';
                 } else {
                     document.getElementById('currentPlayerSection').style.display = 'none';
+                }
+                
+                // Update board visual again to apply colors properly
+                if (dataLoaded.board) {
+                    updateBoardVisual();
                 }
             });
         }
@@ -580,61 +713,63 @@
                     const index = row * 5 + col;
                     const taskData = board[index] || {};
                     
-                    const cell = document.createElement('div');
-                    cell.className = 'task-cell';
+                    const card = document.createElement('div');
+                    card.className = 'task-card';
                     if (devModeActive && taskEditMode) {
-                        cell.className += ' dev-mode';
+                        card.className += ' edit-mode';
                     }
                     
-                    cell.onclick = () => completeTask(row, col);
-                    cell.ondblclick = () => {
+                    card.onclick = () => completeTask(row, col);
+                    card.ondblclick = () => {
                         if (devModeActive && taskEditMode) {
                             editTask(row, col);
                         }
                     };
-                    cell.oncontextmenu = (e) => {
+                    card.oncontextmenu = (e) => {
                         e.preventDefault();
                         if (devModeActive) {
                             cancelTask(row, col);
                         }
                     };
                     
-                    const coordinates = document.createElement('div');
-                    coordinates.className = 'coordinates';
-                    coordinates.textContent = `${String.fromCharCode(65 + row)}${col + 1}`;
+                    // Coordinate
+                    const coordinate = document.createElement('div');
+                    coordinate.className = 'task-coordinate';
+                    coordinate.textContent = `${String.fromCharCode(65 + row)}${col + 1}`;
                     
+                    // Task text
                     const taskText = document.createElement('div');
                     taskText.className = 'task-text';
                     taskText.textContent = taskData.task || sampleTasks[index] || `Task ${index + 1}`;
                     
-                    // Add edit indicator for dev mode
+                    // Edit indicator
                     if (devModeActive && taskEditMode) {
                         const editIndicator = document.createElement('div');
                         editIndicator.className = 'edit-indicator';
-                        editIndicator.textContent = '✏️';
-                        cell.appendChild(editIndicator);
+                        editIndicator.textContent = '✏️ EDIT';
+                        card.appendChild(editIndicator);
                     }
                     
-                    cell.appendChild(coordinates);
-                    cell.appendChild(taskText);
+                    card.appendChild(coordinate);
+                    card.appendChild(taskText);
                     
                     // Handle completed tasks
                     if (taskData.completed) {
                         completedTasks++;
                         const player = players.find(p => p.name === taskData.completedBy);
                         if (player) {
-                            cell.style.backgroundColor = player.color;
-                            cell.style.borderColor = player.color;
-                            cell.classList.add('completed');
+                            card.style.background = `linear-gradient(135deg, ${player.color}88, ${player.color}CC)`;
+                            card.style.borderColor = player.color;
+                            card.classList.add('completed');
                             
-                            const taskInfo = document.createElement('div');
-                            taskInfo.className = 'task-info';
-                            taskInfo.textContent = `${taskData.completedBy} - ${taskData.completedAt}`;
-                            cell.appendChild(taskInfo);
+                            const completion = document.createElement('div');
+                            completion.className = 'task-completion';
+                            completion.textContent = `${taskData.completedBy} - ${taskData.completedAt}`;
+                            card.appendChild(completion);
                         }
                     }
                     
-                    gameBoard.appendChild(cell);
+                    gameBoard.appendChild(card);
                 }
             }
         }
@@ -721,11 +856,11 @@
             playersList.innerHTML = '';
             
             players.forEach(player => {
-                const badge = document.createElement('div');
-                badge.className = 'player-badge';
-                badge.style.backgroundColor = player.color;
-                badge.textContent = player.name;
-                playersList.appendChild(badge);
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                card.style.background = `linear-gradient(135deg, ${player.color}, ${player.color}CC)`;
+                card.textContent = player.name;
+                playersList.appendChild(card);
             });
         }
 
@@ -739,7 +874,6 @@
                 const option = document.createElement('option');
                 option.value = player.name;
                 option.textContent = player.name;
-                option.style.color = player.color;
                 select.appendChild(option);
             });
             
@@ -754,17 +888,17 @@
             
             const sortedPlayers = players.slice().sort((a, b) => (b.score || 0) - (a.score || 0));
             
-            sortedPlayers.forEach(player => {
+            sortedPlayers.forEach((player, index) => {
                 const scoreItem = document.createElement('div');
                 scoreItem.className = 'score-item';
                 
                 const playerName = document.createElement('span');
                 playerName.className = 'player-name';
-                playerName.textContent = player.name;
+                playerName.textContent = `${index === 0 ? '👑 ' : ''}${player.name}`;
                 playerName.style.color = player.color;
                 
                 const score = document.createElement('span');
-                score.className = 'score';
+                score.className = 'score-badge';
                 score.textContent = player.score || 0;
                 
                 scoreItem.appendChild(playerName);
@@ -777,7 +911,7 @@
             const gameStatus = document.getElementById('gameStatus');
             
             if (players.length === 0) {
-                gameStatus.textContent = 'Waiting for players to join...';
+                gameStatus.textContent = 'Waiting for players to join the battle...';
                 return;
             }
             
@@ -785,9 +919,9 @@
                 const winner = players.reduce((prev, current) => 
                     ((prev.score || 0) > (current.score || 0)) ? prev : current
                 );
-                gameStatus.innerHTML = `<span class="winner">🎉 Game Complete! Winner: ${winner.name} with ${winner.score || 0} tasks!</span>`;
+                gameStatus.innerHTML = `<span class="winner">🎉 VICTORY! ${winner.name} wins with ${winner.score || 0} tasks completed!</span>`;
             } else {
-                gameStatus.textContent = `${completedTasks}/${totalTasks} tasks completed - Keep going!`;
+                gameStatus.textContent = `${completedTasks}/${totalTasks} tasks completed • ${players.length} players battling`;
             }
         }
 
@@ -808,21 +942,21 @@
 
         function toggleDevMode() {
             devModeActive = !devModeActive;
-            taskEditMode = false; // Turn off task editing when hiding dev panel
+            taskEditMode = false;
             const panel = document.getElementById('devPanel');
             if (devModeActive) {
                 panel.classList.add('active');
             } else {
                 panel.classList.remove('active');
             }
-            updateBoardVisual(); // Refresh to show/hide edit indicators
+            updateBoardVisual();
         }
 
         function toggleTaskEditMode() {
             if (!devModeActive) return;
             
             taskEditMode = !taskEditMode;
-            updateBoardVisual(); // Refresh to show/hide edit indicators
+            updateBoardVisual();
             
             if (taskEditMode) {
                 alert('Task editing enabled! Double-click any task to edit it.');
@@ -841,13 +975,10 @@
             const newText = prompt('Edit task text:', currentText);
             
             if (newText !== null && newText.trim() !== '' && newText !== currentText) {
-                // Update task in Firebase
                 const taskRef = ref(database, `board/${index}`);
                 await update(taskRef, {
                     task: newText.trim()
                 });
-                
-                console.log(`Task ${String.fromCharCode(65 + row)}${col + 1} updated to: ${newText.trim()}`);
             }
         }
 
@@ -856,11 +987,8 @@
                 return;
             }
             
-            // Clear Firebase data - syncs to all devices
             await set(ref(database, 'players'), null);
             await set(ref(database, 'board'), null);
-            
-            // Reinitialize
             initializeBoard();
             
             alert('Game has been reset!');
@@ -871,7 +999,6 @@
                 return;
             }
             
-            // Reset all tasks in Firebase
             const updates = {};
             for (let i = 0; i < 25; i++) {
                 updates[`board/${i}/completed`] = false;
@@ -879,7 +1006,6 @@
                 updates[`board/${i}/completedAt`] = null;
             }
             
-            // Reset all player scores
             players.forEach(player => {
                 updates[`players/${player.id}/score`] = 0;
             });
@@ -897,10 +1023,8 @@
             
             const lastPlayer = players[players.length - 1];
             
-            // Remove player from Firebase
             await remove(ref(database, `players/${lastPlayer.id}`));
             
-            // Remove their completed tasks
             const updates = {};
             board.forEach((task, index) => {
                 if (task.completedBy === lastPlayer.name) {
@@ -970,8 +1094,10 @@
         
         // Update status when connected
         setTimeout(() => {
-            document.getElementById('gameStatus').textContent = 'Connected! Ready to play...';
-        }, 1000);
+            if (players.length === 0) {
+                document.getElementById('gameStatus').textContent = 'Ready to battle! Join the game to start.';
+            }
+        }, 1500);
     </script>
 </body>
 </html>
