@@ -9,6 +9,23 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        @media (max-width: 360px) {
+            .sidebar {
+                padding: 1rem 0.75rem;
+            }
+            
+            .player-join {
+                flex-wrap: wrap;
+            }
+            
+            .player-join input {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            
+            .player-join button {
+                width: 100%;
+            }
         }
 
         body {
@@ -58,6 +75,7 @@
         /* Sidebar Styles */
         .sidebar {
             width: 320px;
+            min-width: 0;
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -94,6 +112,7 @@
             border: 2px solid #e0e0e0;
             border-radius: 6px;
             font-size: 1rem;
+            min-width: 0;
         }
 
         .player-join button {
@@ -105,6 +124,8 @@
             cursor: pointer;
             font-weight: 600;
             transition: background 0.2s;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
 
         .player-join button:hover {
@@ -350,6 +371,12 @@
         }
 
         /* Responsive Design */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 280px;
+            }
+        }
+
         @media (max-width: 968px) {
             .container {
                 flex-direction: column;
@@ -523,19 +550,20 @@
             });
 
             onValue(tasksRef, (snapshot) => {
-                gameData.tasks = snapshot.val() || {};
-                updateTaskGrid();
-                updateGameStatus();
+                const data = snapshot.val();
+                if (!data || Object.keys(data).length === 0) {
+                    // Initialize tasks if empty
+                    initializeTasks();
+                } else {
+                    gameData.tasks = data;
+                    updateTaskGrid();
+                    updateGameStatus();
+                }
             });
-
-            // Initialize tasks if empty
-            if (Object.keys(gameData.tasks).length === 0) {
-                initializeTasks();
-            }
         }
 
         // Initialize tasks with default values
-        function initializeTasks() {
+        async function initializeTasks() {
             const tasksRef = ref(database, 'tasks');
             const tasks = {};
             
@@ -547,11 +575,16 @@
                 };
             });
             
-            set(tasksRef, tasks);
+            try {
+                await set(tasksRef, tasks);
+                console.log('Tasks initialized successfully');
+            } catch (error) {
+                console.error('Error initializing tasks:', error);
+            }
         }
 
         // Join game
-        window.joinGame = function() {
+        window.joinGame = async function() {
             const nameInput = document.getElementById('playerName');
             const name = nameInput.value.trim();
             
@@ -567,18 +600,23 @@
                 return;
             }
 
-            // Add player to database
-            const playersRef = ref(database, 'players');
-            const newPlayerRef = push(playersRef);
-            const colorIndex = Object.keys(gameData.players).length % playerColors.length;
-            
-            set(newPlayerRef, {
-                name: name,
-                color: playerColors[colorIndex],
-                score: 0
-            });
+            try {
+                // Add player to database
+                const playersRef = ref(database, 'players');
+                const newPlayerRef = push(playersRef);
+                const colorIndex = Object.keys(gameData.players).length % playerColors.length;
+                
+                await set(newPlayerRef, {
+                    name: name,
+                    color: playerColors[colorIndex],
+                    score: 0
+                });
 
-            nameInput.value = '';
+                nameInput.value = '';
+            } catch (error) {
+                console.error('Error joining game:', error);
+                alert('Failed to join game. Please try again.');
+            }
         };
 
         // Update player select dropdown
@@ -679,7 +717,7 @@
         }
 
         // Handle task click
-        function handleTaskClick(taskId) {
+        async function handleTaskClick(taskId) {
             // Don't complete tasks in edit mode
             if (editMode) {
                 return;
@@ -691,25 +729,30 @@
             }
 
             const task = gameData.tasks[taskId];
-            if (task.completed) {
+            if (!task || task.completed) {
                 return;
             }
 
-            // Complete the task
-            const taskRef = ref(database, `tasks/${taskId}`);
-            set(taskRef, {
-                ...task,
-                completed: true,
-                completedBy: currentPlayerId
-            });
+            try {
+                // Complete the task
+                const taskRef = ref(database, `tasks/${taskId}`);
+                await set(taskRef, {
+                    name: task.name,
+                    completed: true,
+                    completedBy: currentPlayerId
+                });
 
-            // Update player score
-            const playerRef = ref(database, `players/${currentPlayerId}`);
-            const currentScore = gameData.players[currentPlayerId].score || 0;
-            set(playerRef, {
-                ...gameData.players[currentPlayerId],
-                score: currentScore + 1
-            });
+                // Update player score
+                const playerRef = ref(database, `players/${currentPlayerId}`);
+                const currentScore = gameData.players[currentPlayerId].score || 0;
+                await set(playerRef, {
+                    ...gameData.players[currentPlayerId],
+                    score: currentScore + 1
+                });
+            } catch (error) {
+                console.error('Error completing task:', error);
+                alert('Failed to complete task. Please try again.');
+            }
         }
 
         // Edit task (admin feature)
@@ -717,38 +760,53 @@
             if (!editMode) return;
             
             const task = gameData.tasks[taskId];
+            if (!task) return;
+            
             const newName = prompt('Edit task name:', task.name);
             
             if (newName && newName.trim()) {
                 const taskRef = ref(database, `tasks/${taskId}`);
-                set(taskRef, {
-                    ...task,
-                    name: newName.trim()
+                const updatedTask = {
+                    name: newName.trim(),
+                    completed: task.completed || false,
+                    completedBy: task.completedBy || null
+                };
+                
+                set(taskRef, updatedTask).then(() => {
+                    console.log('Task updated successfully');
+                }).catch((error) => {
+                    console.error('Error updating task:', error);
+                    alert('Failed to update task. Please try again.');
                 });
             }
         }
 
         // Cancel task (admin feature)
-        function cancelTask(taskId) {
+        async function cancelTask(taskId) {
             const task = gameData.tasks[taskId];
-            if (!task.completed) return;
+            if (!task || !task.completed) return;
 
-            // Update task
-            const taskRef = ref(database, `tasks/${taskId}`);
-            set(taskRef, {
-                ...task,
-                completed: false,
-                completedBy: null
-            });
-
-            // Update player score
-            if (task.completedBy && gameData.players[task.completedBy]) {
-                const playerRef = ref(database, `players/${task.completedBy}`);
-                const currentScore = gameData.players[task.completedBy].score || 0;
-                set(playerRef, {
-                    ...gameData.players[task.completedBy],
-                    score: Math.max(0, currentScore - 1)
+            try {
+                // Update task
+                const taskRef = ref(database, `tasks/${taskId}`);
+                await set(taskRef, {
+                    name: task.name,
+                    completed: false,
+                    completedBy: null
                 });
+
+                // Update player score
+                if (task.completedBy && gameData.players[task.completedBy]) {
+                    const playerRef = ref(database, `players/${task.completedBy}`);
+                    const currentScore = gameData.players[task.completedBy].score || 0;
+                    await set(playerRef, {
+                        ...gameData.players[task.completedBy],
+                        score: Math.max(0, currentScore - 1)
+                    });
+                }
+            } catch (error) {
+                console.error('Error canceling task:', error);
+                alert('Failed to cancel task. Please try again.');
             }
         }
 
@@ -790,13 +848,18 @@
         });
 
         // Admin functions
-        window.resetGame = function() {
+        window.resetGame = async function() {
             if (confirm('Reset the entire game? This will remove all players and tasks.')) {
-                set(ref(database, 'players'), {});
-                set(ref(database, 'tasks'), {});
-                initializeTasks();
-                currentPlayerId = null;
-                updateCurrentPlayer();
+                try {
+                    await set(ref(database, 'players'), {});
+                    await set(ref(database, 'tasks'), {});
+                    await initializeTasks();
+                    currentPlayerId = null;
+                    updateCurrentPlayer();
+                } catch (error) {
+                    console.error('Error resetting game:', error);
+                    alert('Failed to reset game. Please try again.');
+                }
             }
         };
 
@@ -805,7 +868,7 @@
                 const clearedTasks = {};
                 Object.entries(gameData.tasks).forEach(([id, task]) => {
                     clearedTasks[id] = {
-                        ...task,
+                        name: task.name, // Keep the current task name (including edits)
                         completed: false,
                         completedBy: null
                     };
@@ -814,7 +877,7 @@
             }
         };
 
-        window.removeLastPlayer = function() {
+        window.removeLastPlayer = async function() {
             const playerIds = Object.keys(gameData.players);
             if (playerIds.length === 0) {
                 alert('No players to remove');
@@ -825,28 +888,37 @@
             const lastPlayer = gameData.players[lastPlayerId];
             
             if (confirm(`Remove player "${lastPlayer.name}"? Their completed tasks will be reset.`)) {
-                // Remove player
-                remove(ref(database, `players/${lastPlayerId}`));
-                
-                // Reset their tasks
-                const updatedTasks = {};
-                Object.entries(gameData.tasks).forEach(([id, task]) => {
-                    if (task.completedBy === lastPlayerId) {
-                        updatedTasks[id] = {
-                            ...task,
-                            completed: false,
-                            completedBy: null
-                        };
-                    } else {
-                        updatedTasks[id] = task;
+                try {
+                    // Remove player
+                    await remove(ref(database, `players/${lastPlayerId}`));
+                    
+                    // Reset their tasks
+                    const updatedTasks = {};
+                    Object.entries(gameData.tasks).forEach(([id, task]) => {
+                        if (task.completedBy === lastPlayerId) {
+                            updatedTasks[id] = {
+                                name: task.name, // Keep the task name
+                                completed: false,
+                                completedBy: null
+                            };
+                        } else {
+                            updatedTasks[id] = {
+                                name: task.name,
+                                completed: task.completed || false,
+                                completedBy: task.completedBy || null
+                            };
+                        }
+                    });
+                    await set(ref(database, 'tasks'), updatedTasks);
+                    
+                    // Clear current player if it was the removed one
+                    if (currentPlayerId === lastPlayerId) {
+                        currentPlayerId = null;
+                        updateCurrentPlayer();
                     }
-                });
-                set(ref(database, 'tasks'), updatedTasks);
-                
-                // Clear current player if it was the removed one
-                if (currentPlayerId === lastPlayerId) {
-                    currentPlayerId = null;
-                    updateCurrentPlayer();
+                } catch (error) {
+                    console.error('Error removing player:', error);
+                    alert('Failed to remove player. Please try again.');
                 }
             }
         };
