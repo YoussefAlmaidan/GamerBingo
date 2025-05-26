@@ -139,16 +139,17 @@
         .board {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
+            gap: 15px;
             flex: 1;
-            max-width: 600px;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .task-cell {
             aspect-ratio: 1;
             border: 3px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 12px;
+            border-radius: 16px;
+            padding: 20px;
             cursor: pointer;
             transition: all 0.3s;
             background: white;
@@ -156,55 +157,83 @@
             flex-direction: column;
             justify-content: space-between;
             position: relative;
-            min-height: 100px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-height: 140px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .task-cell:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.2);
             border-color: #667eea;
         }
 
         .task-cell.completed {
             cursor: default;
             transform: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
         }
 
         .task-cell.completed:hover {
-            transform: none;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .task-cell.dev-mode:hover {
+            border-color: #ff6b6b;
         }
 
         .task-text {
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 1.3;
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.4;
             text-align: center;
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 10px 0;
+            word-wrap: break-word;
+            hyphens: auto;
         }
 
         .task-info {
-            font-size: 11px;
+            font-size: 12px;
             text-align: center;
-            margin-top: 8px;
+            margin-top: 12px;
             color: white;
-            background: rgba(0,0,0,0.3);
-            padding: 4px 8px;
-            border-radius: 6px;
+            background: rgba(0,0,0,0.4);
+            padding: 6px 12px;
+            border-radius: 8px;
             font-weight: bold;
         }
 
         .coordinates {
             position: absolute;
-            top: 4px;
-            left: 4px;
-            font-size: 10px;
+            top: 8px;
+            left: 8px;
+            font-size: 12px;
             color: #999;
             font-weight: bold;
+            background: rgba(255,255,255,0.8);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .edit-indicator {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 12px;
+            color: #ff6b6b;
+            font-weight: bold;
+            background: rgba(255,255,255,0.9);
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .task-cell.dev-mode .edit-indicator {
+            display: block;
         }
 
         .scoreboard {
@@ -313,17 +342,54 @@
             opacity: 1;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
             .board-container {
                 flex-direction: column;
+                gap: 30px;
+            }
+            
+            .scoreboard {
+                position: static;
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .board {
+                gap: 12px;
+                max-width: 100%;
             }
             
             .task-cell {
-                min-height: 80px;
+                min-height: 120px;
+                padding: 15px;
             }
             
             .task-text {
-                font-size: 12px;
+                font-size: 14px;
+            }
+            
+            .coordinates {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            .task-cell {
+                min-height: 100px;
+                padding: 12px;
+            }
+            
+            .task-text {
+                font-size: 13px;
             }
         }
     </style>
@@ -362,6 +428,7 @@
         <!-- Dev Panel -->
         <div class="dev-panel" id="devPanel">
             <h4>🛠️ Admin Panel</h4>
+            <button onclick="toggleTaskEditMode()">Toggle Task Editing</button>
             <button onclick="resetGame()">Reset Entire Game</button>
             <button onclick="clearAllTasks()">Clear All Tasks</button>
             <button onclick="removeLastPlayer()">Remove Last Player</button>
@@ -515,7 +582,16 @@
                     
                     const cell = document.createElement('div');
                     cell.className = 'task-cell';
+                    if (devModeActive && taskEditMode) {
+                        cell.className += ' dev-mode';
+                    }
+                    
                     cell.onclick = () => completeTask(row, col);
+                    cell.ondblclick = () => {
+                        if (devModeActive && taskEditMode) {
+                            editTask(row, col);
+                        }
+                    };
                     cell.oncontextmenu = (e) => {
                         e.preventDefault();
                         if (devModeActive) {
@@ -530,6 +606,14 @@
                     const taskText = document.createElement('div');
                     taskText.className = 'task-text';
                     taskText.textContent = taskData.task || sampleTasks[index] || `Task ${index + 1}`;
+                    
+                    // Add edit indicator for dev mode
+                    if (devModeActive && taskEditMode) {
+                        const editIndicator = document.createElement('div');
+                        editIndicator.className = 'edit-indicator';
+                        editIndicator.textContent = '✏️';
+                        cell.appendChild(editIndicator);
+                    }
                     
                     cell.appendChild(coordinates);
                     cell.appendChild(taskText);
@@ -709,6 +793,7 @@
 
         // Admin Functions (Firebase-enabled)
         let devModeActive = false;
+        let taskEditMode = false;
         let clickCount = 0;
 
         function activateDevMode() {
@@ -723,11 +808,46 @@
 
         function toggleDevMode() {
             devModeActive = !devModeActive;
+            taskEditMode = false; // Turn off task editing when hiding dev panel
             const panel = document.getElementById('devPanel');
             if (devModeActive) {
                 panel.classList.add('active');
             } else {
                 panel.classList.remove('active');
+            }
+            updateBoardVisual(); // Refresh to show/hide edit indicators
+        }
+
+        function toggleTaskEditMode() {
+            if (!devModeActive) return;
+            
+            taskEditMode = !taskEditMode;
+            updateBoardVisual(); // Refresh to show/hide edit indicators
+            
+            if (taskEditMode) {
+                alert('Task editing enabled! Double-click any task to edit it.');
+            } else {
+                alert('Task editing disabled.');
+            }
+        }
+
+        async function editTask(row, col) {
+            if (!devModeActive || !taskEditMode) return;
+            
+            const index = row * 5 + col;
+            const task = board[index];
+            const currentText = task?.task || sampleTasks[index] || `Task ${index + 1}`;
+            
+            const newText = prompt('Edit task text:', currentText);
+            
+            if (newText !== null && newText.trim() !== '' && newText !== currentText) {
+                // Update task in Firebase
+                const taskRef = ref(database, `board/${index}`);
+                await update(taskRef, {
+                    task: newText.trim()
+                });
+                
+                console.log(`Task ${String.fromCharCode(65 + row)}${col + 1} updated to: ${newText.trim()}`);
             }
         }
 
@@ -833,6 +953,7 @@
         window.removeLastPlayer = removeLastPlayer;
         window.toggleDevMode = toggleDevMode;
         window.activateDevMode = activateDevMode;
+        window.toggleTaskEditMode = toggleTaskEditMode;
 
         // Enter key support
         document.getElementById('playerNameInput').addEventListener('keypress', function(e) {
