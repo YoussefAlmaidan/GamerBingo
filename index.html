@@ -104,6 +104,32 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
+        .current-player-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e6fffa;
+            border-radius: 10px;
+            border: 2px solid #4fd1c7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .current-player-section select {
+            margin-left: 10px;
+            min-width: 150px;
+            padding: 8px;
+            border-radius: 6px;
+            border: 2px solid #cbd5e0;
+            font-size: 16px;
+        }
+
+        .current-player-section select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
         .board-container {
             display: flex;
             gap: 30px;
@@ -287,28 +313,6 @@
             opacity: 1;
         }
 
-        .current-player-section {
-            margin-top: 15px;
-            padding: 15px;
-            background: #e6fffa;
-            border-radius: 10px;
-            border: 2px solid #4fd1c7;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .current-player-section select {
-            margin-left: 10px;
-            min-width: 150px;
-        }
-
-        .current-player-section select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
         @media (max-width: 768px) {
             .board-container {
                 flex-direction: column;
@@ -337,14 +341,14 @@
             
             <div class="current-player-section" id="currentPlayerSection" style="display: none;">
                 <label for="currentPlayerSelect" style="font-weight: bold; margin-right: 10px;">You are:</label>
-                <select id="currentPlayerSelect" style="padding: 8px; border-radius: 6px; border: 2px solid #cbd5e0; font-size: 16px;">
+                <select id="currentPlayerSelect">
                     <option value="">Select your name...</option>
                 </select>
             </div>
         </div>
 
         <div class="game-status" id="gameStatus">
-            Waiting for players to join...
+            Connecting to game server...
         </div>
 
         <div class="board-container">
@@ -364,12 +368,32 @@
             <button onclick="toggleDevMode()">Hide Panel</button>
         </div>
 
-        <!-- Secret Dev Toggle (triple-click to activate) -->
+        <!-- Secret Dev Toggle (double-click to activate) -->
         <button class="dev-toggle" id="devToggle" ondblclick="activateDevMode()">⚙️</button>
     </div>
 
-    <script>
-        // Game state
+    <!-- FIREBASE INTEGRATION -->
+    <script type="module">
+        // Import Firebase functions
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+
+        // Your Firebase configuration - REPLACE [your-api-key-here] with your actual API key
+        const firebaseConfig = {
+            apiKey: "AIzaSyBMS5W47Xjn5G0mO2Me5xIKalLzv-ukLZA", // <-- PUT YOUR API KEY HERE
+            authDomain: "gamerbingo-fc745.firebaseapp.com",
+            databaseURL: "https://gamerbingo-fc745-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "gamerbingo-fc745",
+            storageBucket: "gamerbingo-fc745.firebasestorage.app",
+            messagingSenderId: "864050565555",
+            appId: "1:864050565555:web:133ceb64c6f116b5cabbc6"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Game state - now synced with Firebase
         let players = [];
         let board = [];
         let completedTasks = 0;
@@ -414,14 +438,81 @@
             return colors[Math.floor(Math.random() * colors.length)];
         }
 
-        // Initialize board
+        // FIREBASE LISTENERS - This is what makes it real-time!
+        
+        // Listen for board changes
+        function setupBoardListener() {
+            const boardRef = ref(database, 'board');
+            onValue(boardRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    board = data;
+                    updateBoardVisual();
+                    updateGameStatus();
+                }
+            });
+        }
+
+        // Listen for players changes
+        function setupPlayersListener() {
+            const playersRef = ref(database, 'players');
+            onValue(playersRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    players = Object.keys(data).map(key => ({
+                        id: key,
+                        ...data[key]
+                    }));
+                } else {
+                    players = [];
+                }
+                updatePlayersDisplay();
+                updateCurrentPlayerDropdown();
+                updateScoreboard();
+                updateGameStatus();
+                
+                // Show/hide current player section
+                if (players.length > 0) {
+                    document.getElementById('currentPlayerSection').style.display = 'flex';
+                } else {
+                    document.getElementById('currentPlayerSection').style.display = 'none';
+                }
+            });
+        }
+
+        // Initialize board in Firebase
         function initializeBoard() {
+            const boardRef = ref(database, 'board');
+            onValue(boardRef, (snapshot) => {
+                const data = snapshot.val();
+                if (!data) {
+                    // Create initial board structure
+                    const initialBoard = [];
+                    for (let i = 0; i < 25; i++) {
+                        initialBoard.push({
+                            task: sampleTasks[i] || `Task ${i + 1}`,
+                            completed: false,
+                            completedBy: null,
+                            completedAt: null
+                        });
+                    }
+                    set(boardRef, initialBoard);
+                }
+            }, { onlyOnce: true });
+        }
+
+        // Update board visual from Firebase data
+        function updateBoardVisual() {
             const gameBoard = document.getElementById('gameBoard');
             gameBoard.innerHTML = '';
+            
+            completedTasks = 0;
             
             for (let row = 0; row < 5; row++) {
                 for (let col = 0; col < 5; col++) {
                     const index = row * 5 + col;
+                    const taskData = board[index] || {};
+                    
                     const cell = document.createElement('div');
                     cell.className = 'task-cell';
                     cell.onclick = () => completeTask(row, col);
@@ -438,25 +529,34 @@
                     
                     const taskText = document.createElement('div');
                     taskText.className = 'task-text';
-                    taskText.textContent = sampleTasks[index] || `Task ${index + 1}`;
+                    taskText.textContent = taskData.task || sampleTasks[index] || `Task ${index + 1}`;
                     
                     cell.appendChild(coordinates);
                     cell.appendChild(taskText);
                     
-                    gameBoard.appendChild(cell);
+                    // Handle completed tasks
+                    if (taskData.completed) {
+                        completedTasks++;
+                        const player = players.find(p => p.name === taskData.completedBy);
+                        if (player) {
+                            cell.style.backgroundColor = player.color;
+                            cell.style.borderColor = player.color;
+                            cell.classList.add('completed');
+                            
+                            const taskInfo = document.createElement('div');
+                            taskInfo.className = 'task-info';
+                            taskInfo.textContent = `${taskData.completedBy} - ${taskData.completedAt}`;
+                            cell.appendChild(taskInfo);
+                        }
+                    }
                     
-                    board.push({
-                        task: sampleTasks[index] || `Task ${index + 1}`,
-                        completed: false,
-                        completedBy: null,
-                        completedAt: null
-                    });
+                    gameBoard.appendChild(cell);
                 }
             }
         }
 
-        // Add player
-        function addPlayer() {
+        // Add player to Firebase
+        async function addPlayer() {
             const input = document.getElementById('playerNameInput');
             const name = input.value.trim();
             
@@ -473,29 +573,24 @@
             const player = {
                 name: name,
                 color: generateRandomColor(),
-                score: 0
+                score: 0,
+                joinedAt: Date.now()
             };
             
-            players.push(player);
+            // Add to Firebase - this will sync to all devices instantly!
+            const playersRef = ref(database, 'players');
+            const newPlayerRef = push(playersRef);
+            await set(newPlayerRef, player);
+            
             input.value = '';
-            
-            updatePlayersDisplay();
-            updateCurrentPlayerDropdown();
-            updateScoreboard();
-            updateGameStatus();
-            
-            // Show current player section when first player joins
-            if (players.length === 1) {
-                document.getElementById('currentPlayerSection').style.display = 'flex';
-            }
         }
 
-        // Complete task
-        function completeTask(row, col) {
+        // Complete task in Firebase
+        async function completeTask(row, col) {
             const index = row * 5 + col;
             const task = board[index];
             
-            if (task.completed) {
+            if (!task || task.completed) {
                 alert('This task has already been completed!');
                 return;
             }
@@ -521,51 +616,22 @@
                 return;
             }
             
-            // Mark task as completed
-            task.completed = true;
-            task.completedBy = player.name;
-            task.completedAt = new Date().toLocaleTimeString();
-            player.score++;
-            completedTasks++;
-            
-            // Update visual
-            const cells = document.querySelectorAll('.task-cell');
-            const cell = cells[index];
-            cell.style.backgroundColor = player.color;
-            cell.style.borderColor = player.color;
-            cell.classList.add('completed');
-            
-            const taskInfo = document.createElement('div');
-            taskInfo.className = 'task-info';
-            taskInfo.textContent = `${player.name} - ${task.completedAt}`;
-            cell.appendChild(taskInfo);
-            
-            updateScoreboard();
-            updateGameStatus();
-        }
-
-        // Update current player dropdown
-        function updateCurrentPlayerDropdown() {
-            const select = document.getElementById('currentPlayerSelect');
-            const currentValue = select.value;
-            
-            // Clear existing options except the first one
-            select.innerHTML = '<option value="">Select your name...</option>';
-            
-            // Add all players to dropdown
-            players.forEach(player => {
-                const option = document.createElement('option');
-                option.value = player.name;
-                option.textContent = player.name;
-                option.style.color = player.color;
-                select.appendChild(option);
+            // Update task in Firebase - this syncs to everyone instantly!
+            const taskRef = ref(database, `board/${index}`);
+            await update(taskRef, {
+                completed: true,
+                completedBy: player.name,
+                completedAt: new Date().toLocaleTimeString()
             });
             
-            // Restore previous selection if still valid
-            if (currentValue && players.find(p => p.name === currentValue)) {
-                select.value = currentValue;
-            }
+            // Update player score in Firebase
+            const playerRef = ref(database, `players/${player.id}`);
+            await update(playerRef, {
+                score: (player.score || 0) + 1
+            });
         }
+
+        // Update displays (called when Firebase data changes)
         function updatePlayersDisplay() {
             const playersList = document.getElementById('playersList');
             playersList.innerHTML = '';
@@ -579,13 +645,30 @@
             });
         }
 
-        // Update scoreboard
+        function updateCurrentPlayerDropdown() {
+            const select = document.getElementById('currentPlayerSelect');
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="">Select your name...</option>';
+            
+            players.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player.name;
+                option.textContent = player.name;
+                option.style.color = player.color;
+                select.appendChild(option);
+            });
+            
+            if (currentValue && players.find(p => p.name === currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
         function updateScoreboard() {
             const scoresList = document.getElementById('scoresList');
             scoresList.innerHTML = '';
             
-            // Sort players by score
-            const sortedPlayers = players.slice().sort((a, b) => b.score - a.score);
+            const sortedPlayers = players.slice().sort((a, b) => (b.score || 0) - (a.score || 0));
             
             sortedPlayers.forEach(player => {
                 const scoreItem = document.createElement('div');
@@ -598,7 +681,7 @@
                 
                 const score = document.createElement('span');
                 score.className = 'score';
-                score.textContent = player.score;
+                score.textContent = player.score || 0;
                 
                 scoreItem.appendChild(playerName);
                 scoreItem.appendChild(score);
@@ -606,7 +689,6 @@
             });
         }
 
-        // Update game status
         function updateGameStatus() {
             const gameStatus = document.getElementById('gameStatus');
             
@@ -617,25 +699,15 @@
             
             if (completedTasks === totalTasks) {
                 const winner = players.reduce((prev, current) => 
-                    (prev.score > current.score) ? prev : current
+                    ((prev.score || 0) > (current.score || 0)) ? prev : current
                 );
-                gameStatus.innerHTML = `<span class="winner">🎉 Game Complete! Winner: ${winner.name} with ${winner.score} tasks!</span>`;
+                gameStatus.innerHTML = `<span class="winner">🎉 Game Complete! Winner: ${winner.name} with ${winner.score || 0} tasks!</span>`;
             } else {
                 gameStatus.textContent = `${completedTasks}/${totalTasks} tasks completed - Keep going!`;
             }
         }
 
-        // Enter key for player input
-        document.getElementById('playerNameInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                addPlayer();
-            }
-        });
-
-        // Initialize the game
-        initializeBoard();
-
-        // Dev Panel Functions
+        // Admin Functions (Firebase-enabled)
         let devModeActive = false;
         let clickCount = 0;
 
@@ -646,7 +718,7 @@
                 document.getElementById('devPanel').classList.add('active');
                 clickCount = 0;
             }
-            setTimeout(() => { clickCount = 0; }, 1000); // Reset click count after 1 second
+            setTimeout(() => { clickCount = 0; }, 1000);
         }
 
         function toggleDevMode() {
@@ -659,121 +731,79 @@
             }
         }
 
-        function resetGame() {
+        async function resetGame() {
             if (!confirm('Are you sure you want to reset the entire game? This will clear all players and tasks!')) {
                 return;
             }
             
-            players = [];
-            board = [];
-            completedTasks = 0;
+            // Clear Firebase data - syncs to all devices
+            await set(ref(database, 'players'), null);
+            await set(ref(database, 'board'), null);
             
-            // Clear displays
-            document.getElementById('playersList').innerHTML = '';
-            document.getElementById('scoresList').innerHTML = '';
-            document.getElementById('currentPlayerSection').style.display = 'none';
-            
-            // Reset dropdown
-            const select = document.getElementById('currentPlayerSelect');
-            select.innerHTML = '<option value="">Select your name...</option>';
-            
-            // Reinitialize board
+            // Reinitialize
             initializeBoard();
-            updateGameStatus();
             
             alert('Game has been reset!');
         }
 
-        function clearAllTasks() {
+        async function clearAllTasks() {
             if (!confirm('Are you sure you want to clear all completed tasks?')) {
                 return;
             }
             
-            // Reset all tasks
-            board.forEach(task => {
-                task.completed = false;
-                task.completedBy = null;
-                task.completedAt = null;
-            });
+            // Reset all tasks in Firebase
+            const updates = {};
+            for (let i = 0; i < 25; i++) {
+                updates[`board/${i}/completed`] = false;
+                updates[`board/${i}/completedBy`] = null;
+                updates[`board/${i}/completedAt`] = null;
+            }
             
-            // Reset player scores
+            // Reset all player scores
             players.forEach(player => {
-                player.score = 0;
+                updates[`players/${player.id}/score`] = 0;
             });
             
-            completedTasks = 0;
-            
-            // Reset visual board
-            const cells = document.querySelectorAll('.task-cell');
-            cells.forEach(cell => {
-                cell.style.backgroundColor = 'white';
-                cell.style.borderColor = '#e2e8f0';
-                cell.classList.remove('completed');
-                
-                // Remove task info if it exists
-                const taskInfo = cell.querySelector('.task-info');
-                if (taskInfo) {
-                    taskInfo.remove();
-                }
-            });
-            
-            updateScoreboard();
-            updateGameStatus();
+            await update(ref(database), updates);
             
             alert('All tasks have been cleared!');
         }
 
-        function removeLastPlayer() {
+        async function removeLastPlayer() {
             if (players.length === 0) {
                 alert('No players to remove!');
                 return;
             }
             
-            const removedPlayer = players.pop();
+            const lastPlayer = players[players.length - 1];
+            
+            // Remove player from Firebase
+            await remove(ref(database, `players/${lastPlayer.id}`));
             
             // Remove their completed tasks
+            const updates = {};
             board.forEach((task, index) => {
-                if (task.completedBy === removedPlayer.name) {
-                    task.completed = false;
-                    task.completedBy = null;
-                    task.completedAt = null;
-                    completedTasks--;
-                    
-                    // Reset visual
-                    const cells = document.querySelectorAll('.task-cell');
-                    const cell = cells[index];
-                    cell.style.backgroundColor = 'white';
-                    cell.style.borderColor = '#e2e8f0';
-                    cell.classList.remove('completed');
-                    
-                    const taskInfo = cell.querySelector('.task-info');
-                    if (taskInfo) {
-                        taskInfo.remove();
-                    }
+                if (task.completedBy === lastPlayer.name) {
+                    updates[`board/${index}/completed`] = false;
+                    updates[`board/${index}/completedBy`] = null;
+                    updates[`board/${index}/completedAt`] = null;
                 }
             });
             
-            updatePlayersDisplay();
-            updateCurrentPlayerDropdown();
-            updateScoreboard();
-            updateGameStatus();
-            
-            // Hide current player section if no players left
-            if (players.length === 0) {
-                document.getElementById('currentPlayerSection').style.display = 'none';
+            if (Object.keys(updates).length > 0) {
+                await update(ref(database), updates);
             }
             
-            alert(`Removed player: ${removedPlayer.name}`);
+            alert(`Removed player: ${lastPlayer.name}`);
         }
 
-        // Right-click on tasks to cancel them (dev mode only)
-        function cancelTask(row, col) {
+        async function cancelTask(row, col) {
             if (!devModeActive) return;
             
             const index = row * 5 + col;
             const task = board[index];
             
-            if (!task.completed) {
+            if (!task || !task.completed) {
                 alert('This task is not completed yet!');
                 return;
             }
@@ -782,33 +812,45 @@
                 return;
             }
             
-            // Find player and reduce score
             const player = players.find(p => p.name === task.completedBy);
+            
+            const updates = {};
+            updates[`board/${index}/completed`] = false;
+            updates[`board/${index}/completedBy`] = null;
+            updates[`board/${index}/completedAt`] = null;
+            
             if (player) {
-                player.score--;
+                updates[`players/${player.id}/score`] = Math.max(0, (player.score || 0) - 1);
             }
             
-            // Reset task
-            task.completed = false;
-            task.completedBy = null;
-            task.completedAt = null;
-            completedTasks--;
-            
-            // Reset visual
-            const cells = document.querySelectorAll('.task-cell');
-            const cell = cells[index];
-            cell.style.backgroundColor = 'white';
-            cell.style.borderColor = '#e2e8f0';
-            cell.classList.remove('completed');
-            
-            const taskInfo = cell.querySelector('.task-info');
-            if (taskInfo) {
-                taskInfo.remove();
-            }
-            
-            updateScoreboard();
-            updateGameStatus();
+            await update(ref(database), updates);
         }
+
+        // Make functions global for HTML onclick handlers
+        window.addPlayer = addPlayer;
+        window.resetGame = resetGame;
+        window.clearAllTasks = clearAllTasks;
+        window.removeLastPlayer = removeLastPlayer;
+        window.toggleDevMode = toggleDevMode;
+        window.activateDevMode = activateDevMode;
+
+        // Enter key support
+        document.getElementById('playerNameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addPlayer();
+            }
+        });
+
+        // INITIALIZE THE REAL-TIME MULTIPLAYER GAME
+        console.log('🔥 Starting Firebase-powered multiplayer game...');
+        initializeBoard();
+        setupBoardListener();
+        setupPlayersListener();
+        
+        // Update status when connected
+        setTimeout(() => {
+            document.getElementById('gameStatus').textContent = 'Connected! Ready to play...';
+        }, 1000);
     </script>
 </body>
 </html>
