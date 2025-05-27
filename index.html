@@ -370,6 +370,93 @@
             font-weight: 600;
         }
 
+        /* Password Modal Styles */
+        .password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .password-modal.show {
+            display: flex;
+        }
+
+        .password-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            width: 300px;
+            text-align: center;
+        }
+
+        .password-content h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .password-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .password-buttons button {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .password-ok {
+            background: #3498db;
+            color: white;
+        }
+
+        .password-ok:hover {
+            background: #2980b9;
+        }
+
+        .password-cancel {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .password-cancel:hover {
+            background: #7f8c8d;
+        }
+
+        .password-error {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
         /* Responsive Design */
         @media (max-width: 1200px) {
             .sidebar {
@@ -429,6 +516,11 @@
                 width: calc(100% - 40px);
                 left: 20px;
                 right: 20px;
+            }
+
+            .password-content {
+                width: calc(100% - 40px);
+                margin: 0 20px;
             }
         }
     </style>
@@ -492,6 +584,19 @@
         </div>
     </div>
 
+    <!-- Password Modal -->
+    <div class="password-modal" id="passwordModal">
+        <div class="password-content">
+            <h3>🔒 Enter Password</h3>
+            <input type="password" id="passwordInput" class="password-input" placeholder="Password">
+            <div class="password-buttons">
+                <button class="password-cancel" onclick="cancelPassword()">Cancel</button>
+                <button class="password-ok" onclick="checkPassword()">OK</button>
+            </div>
+            <div class="password-error" id="passwordError">Incorrect password. Try again.</div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
@@ -520,6 +625,9 @@
             players: {},
             tasks: {}
         };
+
+        // Admin password
+        const ADMIN_PASSWORD = 'fishsticks';
 
         // Player colors
         const playerColors = [
@@ -829,7 +937,7 @@
             }
         }
 
-        // Admin panel toggle
+        // Admin panel toggle with password protection
         document.getElementById('adminToggle').addEventListener('click', function(e) {
             adminClickCount++;
             
@@ -842,8 +950,40 @@
             }, 500);
             
             if (adminClickCount === 3) {
-                document.getElementById('adminPanel').classList.toggle('show');
+                showPasswordModal();
                 adminClickCount = 0;
+            }
+        });
+
+        // Password modal functions
+        function showPasswordModal() {
+            document.getElementById('passwordModal').classList.add('show');
+            document.getElementById('passwordInput').focus();
+            document.getElementById('passwordError').style.display = 'none';
+        }
+
+        window.cancelPassword = function() {
+            document.getElementById('passwordModal').classList.remove('show');
+            document.getElementById('passwordInput').value = '';
+        };
+
+        window.checkPassword = function() {
+            const password = document.getElementById('passwordInput').value;
+            
+            if (password === ADMIN_PASSWORD) {
+                document.getElementById('adminPanel').classList.toggle('show');
+                cancelPassword();
+            } else {
+                document.getElementById('passwordError').style.display = 'block';
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+            }
+        };
+
+        // Allow Enter key to submit password
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
             }
         });
 
