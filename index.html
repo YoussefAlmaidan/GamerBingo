@@ -4,63 +4,560 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Duck's Taskmaster - Real-Time Multiplayer Game</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        @media (max-width: 360px) {
+            .sidebar {
+                padding: 1rem 0.75rem;
+            }
+            
+            .player-join {
+                flex-wrap: wrap;
+            }
+            
+            .player-join input {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            
+            .player-join button {
+                width: 100%;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .game-status {
+            text-align: center;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Container Layout */
+        .container {
+            flex: 1;
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 1rem;
+            gap: 1rem;
+            min-height: 0; /* Fix for Firefox flex issues */
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 320px;
+            min-width: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            flex-shrink: 0;
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
+        }
+
+        .player-section, .leaderboard-section {
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .player-section h2, .leaderboard-section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .player-join {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .player-join input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1rem;
+            min-width: 0;
+        }
+
+        .player-join button {
+            padding: 0.5rem 1rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .player-join button:hover {
+            background: #5a67d8;
+        }
+
+        .player-select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .current-player {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        .leaderboard {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .leaderboard-name {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .player-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .leaderboard-score {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        /* Main Board Styles */
+        .main-board {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 0; /* Fix for flex children */
+            overflow: auto;
+        }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            height: 100%;
+            align-content: start;
+        }
+
+        .task-card {
+            background: #f0f0f0;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            position: relative;
+            overflow: hidden;
+            aspect-ratio: 1;
+            min-height: 100px;
+        }
+
+        .task-card:hover:not(.completed) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: #f5f5f5;
+        }
+
+        .task-card.completed {
+            cursor: default;
+            animation: taskComplete 0.5s ease;
+        }
+
+        .task-card.completed::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: currentColor;
+            opacity: 0.2;
+        }
+
+        .task-card.completed::after {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 4px rgba(0,0,0,0.5);
+        }
+
+        .task-card.editing {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+            cursor: text;
+        }
+
+        .task-card.editing:hover {
+            transform: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        @keyframes taskComplete {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Admin Panel Styles */
+        .admin-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: #764ba2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            z-index: 1000;
+        }
+
+        .admin-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .admin-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .admin-panel {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            padding: 1.5rem;
+            display: none;
+            z-index: 999;
+            width: 300px;
+        }
+
+        .admin-panel.show {
+            display: block;
+        }
+
+        .admin-panel h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .admin-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .admin-controls button {
+            padding: 0.75rem;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .admin-controls button:hover {
+            background: #c0392b;
+        }
+
+        .admin-controls button.safe {
+            background: #3498db;
+        }
+
+        .admin-controls button.safe:hover {
+            background: #2980b9;
+        }
+
+        .admin-status {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background: #f0f0f0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .admin-status.active {
+            background: #fff3cd;
+            color: #856404;
+            font-weight: 600;
+        }
+
+        /* Password Modal Styles */
+        .password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .password-modal.show {
+            display: flex;
+        }
+
+        .password-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            width: 300px;
+            text-align: center;
+        }
+
+        .password-content h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .password-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .password-buttons button {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .password-ok {
+            background: #3498db;
+            color: white;
+        }
+
+        .password-ok:hover {
+            background: #2980b9;
+        }
+
+        .password-cancel {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .password-cancel:hover {
+            background: #7f8c8d;
+        }
+
+        .password-error {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 280px;
+            }
+        }
+
+        @media (max-width: 968px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-width: 100%;
+                flex-direction: row;
+                padding: 1rem;
+                gap: 1rem;
+                max-height: none;
+            }
+
+            .player-section, .leaderboard-section {
+                flex: 1;
+            }
+
+            .task-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+
+            .main-board {
+                min-height: 500px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .sidebar {
+                flex-direction: column;
+            }
+
+            .task-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 0.5rem;
+            }
+
+            .task-card {
+                font-size: 0.8rem;
+                padding: 0.5rem;
+                min-height: 80px;
+                aspect-ratio: 1;
+            }
+
+            .admin-panel {
+                width: calc(100% - 40px);
+                left: 20px;
+                right: 20px;
+            }
+
+            .password-content {
+                width: calc(100% - 40px);
+                margin: 0 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div class="toast" id="toast">
-        <span id="toastMessage"></span>
-    </div>
-
-    <!-- Header -->
     <header class="header">
         <h1>🦆 Duck's Taskmaster</h1>
         <div class="game-status">
-            <div class="status-badge">
-                <span id="completedCount">0</span> / 25 tasks completed
-            </div>
-            <div class="status-badge edit-mode-badge" id="editModeIndicator" style="display: none;">
+            <span id="completedCount">0</span> / 25 tasks completed
+            <span id="editModeIndicator" style="display: none; margin-left: 1rem; background: #fff3cd; color: #856404; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.9rem;">
                 📝 Edit Mode Active
-            </div>
+            </span>
         </div>
     </header>
 
-    <!-- Main Container -->
     <div class="container">
-        <!-- Sidebar -->
         <aside class="sidebar">
-            <!-- Player Section -->
-            <div class="sidebar-section">
-                <h2>🎮 Join Game</h2>
+            <div class="player-section">
+                <h2>Join Game</h2>
                 <div class="player-join">
-                    <input type="text" id="playerName" placeholder="Enter your name" maxlength="20" autocomplete="off">
-                    <button class="btn" onclick="joinGame()" id="joinBtn">Join</button>
+                    <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
+                    <button onclick="joinGame()">Join</button>
                 </div>
                 <select id="playerSelect" class="player-select">
                     <option value="">Select yourself</option>
                 </select>
-                <div class="current-player" id="currentPlayer">
-                    No player selected
-                </div>
+                <div class="current-player" id="currentPlayer">No player selected</div>
             </div>
 
-            <!-- Leaderboard Section -->
-            <div class="sidebar-section">
-                <h2>🏆 Leaderboard</h2>
+            <div class="leaderboard-section">
+                <h2>Leaderboard</h2>
                 <div class="leaderboard" id="leaderboard">
-                    <div style="text-align: center; color: #a0aec0; padding: 2rem;">
-                        No players yet
-                    </div>
+                    <!-- Leaderboard items will be dynamically added -->
                 </div>
             </div>
         </aside>
 
-        <!-- Main Board -->
         <main class="main-board">
             <div class="task-grid" id="taskGrid">
                 <!-- Task cards will be dynamically generated -->
@@ -68,21 +565,19 @@
         </main>
     </div>
 
-    <!-- Admin Toggle -->
-    <div class="admin-toggle" id="adminToggle" title="Admin Panel (Triple-click)">
+    <div class="admin-toggle" id="adminToggle">
         <svg viewBox="0 0 24 24">
             <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97c0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1c0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z"/>
         </svg>
     </div>
 
-    <!-- Admin Panel -->
     <div class="admin-panel" id="adminPanel">
-        <h3>⚙️ Admin Controls</h3>
+        <h3>Admin Controls</h3>
         <div class="admin-controls">
-            <button class="btn btn-danger" onclick="resetGame()">🔄 Reset Entire Game</button>
-            <button class="btn btn-danger" onclick="clearTasks()">🧹 Clear All Tasks</button>
-            <button class="btn btn-danger" onclick="removeLastPlayer()">👤 Remove Last Player</button>
-            <button class="btn btn-success" onclick="toggleEditMode()">✏️ Toggle Edit Mode</button>
+            <button onclick="resetGame()">Reset Entire Game</button>
+            <button onclick="clearTasks()">Clear All Tasks</button>
+            <button onclick="removeLastPlayer()">Remove Last Player</button>
+            <button class="safe" onclick="toggleEditMode()">Toggle Edit Mode</button>
         </div>
         <div class="admin-status" id="adminStatus">
             Edit mode: <span id="editModeStatus">OFF</span>
@@ -90,17 +585,15 @@
     </div>
 
     <!-- Password Modal -->
-    <div class="modal" id="passwordModal">
-        <div class="modal-content">
-            <h3>🔒 Enter Admin Password</h3>
-            <input type="password" id="passwordInput" class="modal-input" placeholder="Password" autocomplete="off">
-            <div class="modal-buttons">
-                <button class="btn" style="background: #a0aec0;" onclick="cancelPassword()">Cancel</button>
-                <button class="btn btn-success" onclick="checkPassword()">Unlock</button>
+    <div class="password-modal" id="passwordModal">
+        <div class="password-content">
+            <h3>🔒 Enter Password</h3>
+            <input type="password" id="passwordInput" class="password-input" placeholder="Password">
+            <div class="password-buttons">
+                <button class="password-cancel" onclick="cancelPassword()">Cancel</button>
+                <button class="password-ok" onclick="checkPassword()">OK</button>
             </div>
-            <div class="modal-error" id="passwordError">
-                ❌ Incorrect password. Try again.
-            </div>
+            <div class="password-error" id="passwordError">Incorrect password. Try again.</div>
         </div>
     </div>
 
@@ -133,14 +626,17 @@
             tasks: {}
         };
 
-        // Constants
+        // Admin password
         const ADMIN_PASSWORD = 'fishsticks';
+
+        // Player colors
         const playerColors = [
-            '#E6194B', '#3CB44B', '#0082C8', '#F58231', '#911EB4',
-            '#46F0F0', '#F032E6', '#D2F53C', '#FABEBE', '#008080',
-            '#AA6E28', '#FFA07A', '#FFD700', '#DC143C', '#20B2AA'
+    '#E6194B', '#3CB44B', '#0082C8', '#F58231', '#911EB4',
+    '#46F0F0', '#F032E6', '#D2F53C', '#FABEBE', '#008080',
+    '#AA6E28', '#FFA07A', '#FFD700', '#DC143C', '#20B2AA'
         ];
 
+        // Default task names
         const defaultTasks = [
             "Eat pasta", "Win a 1v1", "Explode a car", "Pet a dog", "Get 1st place or MVP",
             "Win a run (not a literal run)", "Build a Masjid", "Make someone laugh", "Dress in a full purple outfit", "Beat a boss",
@@ -149,32 +645,9 @@
             "Get 8 headshots in a row", "Crash the game", "Plant and harvest 3 different plants", "In a character creator, make Dio Brando", "Heal exactly 50HP in one burst"
         ];
 
-        // Utility functions
-        function showLoading() {
-            document.getElementById('loadingOverlay').classList.add('show');
-        }
-
-        function hideLoading() {
-            document.getElementById('loadingOverlay').classList.remove('show');
-        }
-
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            
-            toast.className = `toast ${type}`;
-            toastMessage.textContent = message;
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-
         // Initialize game
         function initializeGame() {
-            showLoading();
-            
+            // Set up database listeners
             const playersRef = ref(database, 'players');
             const tasksRef = ref(database, 'tasks');
 
@@ -182,23 +655,22 @@
                 gameData.players = snapshot.val() || {};
                 updatePlayerSelect();
                 updateLeaderboard();
-                hideLoading();
             });
 
             onValue(tasksRef, (snapshot) => {
                 const data = snapshot.val();
                 if (!data || Object.keys(data).length === 0) {
+                    // Initialize tasks if empty
                     initializeTasks();
                 } else {
                     gameData.tasks = data;
                     updateTaskGrid();
                     updateGameStatus();
                 }
-                hideLoading();
             });
         }
 
-        // Initialize tasks
+        // Initialize tasks with default values
         async function initializeTasks() {
             const tasksRef = ref(database, 'tasks');
             const tasks = {};
@@ -213,45 +685,31 @@
             
             try {
                 await set(tasksRef, tasks);
-                showToast('Game initialized successfully!');
+                console.log('Tasks initialized successfully');
             } catch (error) {
                 console.error('Error initializing tasks:', error);
-                showToast('Failed to initialize game', 'error');
             }
         }
 
         // Join game
         window.joinGame = async function() {
             const nameInput = document.getElementById('playerName');
-            const joinBtn = document.getElementById('joinBtn');
             const name = nameInput.value.trim();
             
             if (!name) {
-                showToast('Please enter your name', 'warning');
-                nameInput.focus();
-                return;
-            }
-
-            if (name.length > 20) {
-                showToast('Name too long (max 20 characters)', 'warning');
+                alert('Please enter your name');
                 return;
             }
 
             // Check if name already exists
-            const existingPlayer = Object.values(gameData.players).find(p => 
-                p.name.toLowerCase() === name.toLowerCase()
-            );
+            const existingPlayer = Object.values(gameData.players).find(p => p.name === name);
             if (existingPlayer) {
-                showToast('This name is already taken!', 'warning');
-                nameInput.focus();
-                nameInput.select();
+                alert('This name is already taken!');
                 return;
             }
 
-            joinBtn.disabled = true;
-            joinBtn.textContent = 'Joining...';
-
             try {
+                // Add player to database
                 const playersRef = ref(database, 'players');
                 const newPlayerRef = push(playersRef);
                 const colorIndex = Object.keys(gameData.players).length % playerColors.length;
@@ -263,26 +721,13 @@
                 });
 
                 nameInput.value = '';
-                showToast(`Welcome, ${name}! 🎉`);
-                
-                // Auto-select the new player
-                setTimeout(() => {
-                    const playerSelect = document.getElementById('playerSelect');
-                    playerSelect.value = newPlayerRef.key;
-                    currentPlayerId = newPlayerRef.key;
-                    updateCurrentPlayer();
-                }, 500);
-                
             } catch (error) {
                 console.error('Error joining game:', error);
-                showToast('Failed to join game. Please try again.', 'error');
-            } finally {
-                joinBtn.disabled = false;
-                joinBtn.textContent = 'Join';
+                alert('Failed to join game. Please try again.');
             }
         };
 
-        // Update player select
+        // Update player select dropdown
         function updatePlayerSelect() {
             const select = document.getElementById('playerSelect');
             const currentValue = select.value;
@@ -296,6 +741,7 @@
                 select.appendChild(option);
             });
 
+            // Restore selection if player still exists
             if (currentValue && gameData.players[currentValue]) {
                 select.value = currentValue;
                 currentPlayerId = currentValue;
@@ -303,63 +749,38 @@
             }
         }
 
-        // Player select handler
+        // Player select change handler
         document.getElementById('playerSelect').addEventListener('change', function(e) {
             currentPlayerId = e.target.value;
             updateCurrentPlayer();
-            if (currentPlayerId) {
-                showToast(`Playing as ${gameData.players[currentPlayerId].name}! 🎮`);
-            }
         });
 
         // Update current player display
         function updateCurrentPlayer() {
             const display = document.getElementById('currentPlayer');
             if (currentPlayerId && gameData.players[currentPlayerId]) {
-                const player = gameData.players[currentPlayerId];
-                display.textContent = `Playing as: ${player.name}`;
-                display.classList.add('active');
-                display.style.borderColor = player.color;
+                display.textContent = `Playing as: ${gameData.players[currentPlayerId].name}`;
             } else {
                 display.textContent = 'No player selected';
-                display.classList.remove('active');
-                display.style.borderColor = '#e2e8f0';
             }
         }
 
         // Update leaderboard
         function updateLeaderboard() {
             const leaderboard = document.getElementById('leaderboard');
-            
-            if (Object.keys(gameData.players).length === 0) {
-                leaderboard.innerHTML = `
-                    <div style="text-align: center; color: #a0aec0; padding: 2rem;">
-                        No players yet
-                    </div>
-                `;
-                return;
-            }
-
             leaderboard.innerHTML = '';
-            
+
+            // Sort players by score
             const sortedPlayers = Object.entries(gameData.players)
                 .sort(([,a], [,b]) => b.score - a.score);
 
-            sortedPlayers.forEach(([id, player], index) => {
+            sortedPlayers.forEach(([id, player]) => {
                 const item = document.createElement('div');
                 item.className = 'leaderboard-item';
-                
-                // Highlight winner if game is complete
-                const completedTasks = Object.values(gameData.tasks).filter(t => t.completed).length;
-                if (index === 0 && completedTasks === 25 && Object.keys(gameData.tasks).length === 25 && player.score > 0) {
-                    item.classList.add('winner');
-                }
-                
                 item.innerHTML = `
                     <div class="leaderboard-name">
                         <div class="player-dot" style="background-color: ${player.color}"></div>
                         <span>${player.name}</span>
-                        ${index === 0 && player.score > 0 ? '👑' : ''}
                     </div>
                     <div class="leaderboard-score">${player.score}</div>
                 `;
@@ -376,37 +797,24 @@
                 const card = document.createElement('div');
                 card.className = 'task-card';
                 card.dataset.taskId = taskId;
-                card.tabIndex = 0; // Make focusable for keyboard navigation
-                
-                const taskText = document.createElement('span');
-                taskText.textContent = task.name;
-                card.appendChild(taskText);
                 
                 if (task.completed && task.completedBy && gameData.players[task.completedBy]) {
                     card.classList.add('completed');
                     card.style.color = gameData.players[task.completedBy].color;
-                    card.title = `Completed by ${gameData.players[task.completedBy].name}`;
                 }
                 
-                // Event listeners
+                card.textContent = task.name;
                 card.addEventListener('click', () => handleTaskClick(taskId));
-                card.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleTaskClick(taskId);
-                    }
-                });
                 
                 if (editMode) {
                     card.classList.add('editing');
                     card.addEventListener('dblclick', () => editTask(taskId));
-                    card.title = editMode ? 'Double-click to edit' : '';
                 }
                 
                 if (task.completed) {
                     card.addEventListener('contextmenu', (e) => {
                         e.preventDefault();
-                        if (confirm(`Cancel "${task.name}"? This will reset the task and reduce the player's score.`)) {
+                        if (confirm('Cancel this completed task?')) {
                             cancelTask(taskId);
                         }
                     });
@@ -418,23 +826,20 @@
 
         // Handle task click
         async function handleTaskClick(taskId) {
-            if (editMode) return;
+            // Don't complete tasks in edit mode
+            if (editMode) {
+                return;
+            }
             
             if (!currentPlayerId) {
-                showToast('Please select yourself first! 👆', 'warning');
-                document.getElementById('playerSelect').focus();
+                alert('Please select yourself from the dropdown first!');
                 return;
             }
 
             const task = gameData.tasks[taskId];
-            if (!task) return;
-            
-            if (task.completed) {
-                showToast('Task already completed! 🎯', 'warning');
+            if (!task || task.completed) {
                 return;
             }
-
-            showLoading();
 
             try {
                 // Complete the task
@@ -452,18 +857,13 @@
                     ...gameData.players[currentPlayerId],
                     score: currentScore + 1
                 });
-
-                showToast(`Great job! Task completed! 🎉`);
-                
             } catch (error) {
                 console.error('Error completing task:', error);
-                showToast('Failed to complete task. Please try again.', 'error');
-            } finally {
-                hideLoading();
+                alert('Failed to complete task. Please try again.');
             }
         }
 
-        // Edit task
+        // Edit task (admin feature)
         function editTask(taskId) {
             if (!editMode) return;
             
@@ -472,9 +872,7 @@
             
             const newName = prompt('Edit task name:', task.name);
             
-            if (newName && newName.trim() && newName.trim() !== task.name) {
-                showLoading();
-                
+            if (newName && newName.trim()) {
                 const taskRef = ref(database, `tasks/${taskId}`);
                 const updatedTask = {
                     name: newName.trim(),
@@ -483,22 +881,18 @@
                 };
                 
                 set(taskRef, updatedTask).then(() => {
-                    showToast('Task updated successfully! ✏️');
-                    hideLoading();
+                    console.log('Task updated successfully');
                 }).catch((error) => {
                     console.error('Error updating task:', error);
-                    showToast('Failed to update task. Please try again.', 'error');
-                    hideLoading();
+                    alert('Failed to update task. Please try again.');
                 });
             }
         }
 
-        // Cancel task
+        // Cancel task (admin feature)
         async function cancelTask(taskId) {
             const task = gameData.tasks[taskId];
             if (!task || !task.completed) return;
-
-            showLoading();
 
             try {
                 // Update task
@@ -518,14 +912,9 @@
                         score: Math.max(0, currentScore - 1)
                     });
                 }
-
-                showToast('Task cancelled and score updated! ↩️');
-                
             } catch (error) {
                 console.error('Error canceling task:', error);
-                showToast('Failed to cancel task. Please try again.', 'error');
-            } finally {
-                hideLoading();
+                alert('Failed to cancel task. Please try again.');
             }
         }
 
@@ -536,18 +925,19 @@
 
             // Check if game is complete
             if (completedCount === 25 && Object.keys(gameData.tasks).length === 25) {
+                // Find winner
                 const winner = Object.entries(gameData.players)
                     .sort(([,a], [,b]) => b.score - a.score)[0];
                 
-                if (winner && winner[1].score > 0) {
+                if (winner) {
                     setTimeout(() => {
-                        showToast(`🎉 GAME OVER! Winner: ${winner[1].name} with ${winner[1].score} tasks! 🏆`, 'success');
-                    }, 1000);
+                        alert(`🎉 Game Over! Winner: ${winner[1].name} with ${winner[1].score} tasks completed!`);
+                    }, 500);
                 }
             }
         }
 
-        // Admin panel functionality
+        // Admin panel toggle with password protection
         document.getElementById('adminToggle').addEventListener('click', function(e) {
             adminClickCount++;
             
@@ -557,7 +947,7 @@
             
             adminClickTimer = setTimeout(() => {
                 adminClickCount = 0;
-            }, 1000);
+            }, 500);
             
             if (adminClickCount === 3) {
                 showPasswordModal();
@@ -565,6 +955,7 @@
             }
         });
 
+        // Password modal functions
         function showPasswordModal() {
             document.getElementById('passwordModal').classList.add('show');
             document.getElementById('passwordInput').focus();
@@ -582,131 +973,93 @@
             if (password === ADMIN_PASSWORD) {
                 document.getElementById('adminPanel').classList.toggle('show');
                 cancelPassword();
-                showToast('Admin panel unlocked! 🔓', 'success');
             } else {
                 document.getElementById('passwordError').style.display = 'block';
                 document.getElementById('passwordInput').value = '';
                 document.getElementById('passwordInput').focus();
-                setTimeout(() => {
-                    document.getElementById('passwordError').style.display = 'none';
-                }, 3000);
             }
         };
 
-        // Keyboard shortcuts
+        // Allow Enter key to submit password
         document.getElementById('passwordInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 checkPassword();
             }
         });
 
-        document.getElementById('playerName').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                joinGame();
-            }
-        });
-
         // Admin functions
         window.resetGame = async function() {
-            if (!confirm('⚠️ Reset the entire game?\n\nThis will:\n• Remove all players\n• Reset all tasks\n• Clear all scores\n\nThis cannot be undone!')) {
-                return;
-            }
-
-            showLoading();
-            
-            try {
-                await set(ref(database, 'players'), {});
-                await set(ref(database, 'tasks'), {});
-                await initializeTasks();
-                currentPlayerId = null;
-                updateCurrentPlayer();
-                showToast('Game reset successfully! 🔄');
-            } catch (error) {
-                console.error('Error resetting game:', error);
-                showToast('Failed to reset game. Please try again.', 'error');
-            } finally {
-                hideLoading();
+            if (confirm('Reset the entire game? This will remove all players and tasks.')) {
+                try {
+                    await set(ref(database, 'players'), {});
+                    await set(ref(database, 'tasks'), {});
+                    await initializeTasks();
+                    currentPlayerId = null;
+                    updateCurrentPlayer();
+                } catch (error) {
+                    console.error('Error resetting game:', error);
+                    alert('Failed to reset game. Please try again.');
+                }
             }
         };
 
-        window.clearTasks = async function() {
-            if (!confirm('🧹 Clear all completed tasks?\n\nPlayers will keep their current scores, but all tasks will be reset to incomplete.')) {
-                return;
-            }
-
-            showLoading();
-            
-            try {
+        window.clearTasks = function() {
+            if (confirm('Clear all completed tasks? Players will keep their scores.')) {
                 const clearedTasks = {};
                 Object.entries(gameData.tasks).forEach(([id, task]) => {
                     clearedTasks[id] = {
-                        name: task.name,
+                        name: task.name, // Keep the current task name (including edits)
                         completed: false,
                         completedBy: null
                     };
                 });
-                await set(ref(database, 'tasks'), clearedTasks);
-                showToast('All tasks cleared! 🧹');
-            } catch (error) {
-                console.error('Error clearing tasks:', error);
-                showToast('Failed to clear tasks. Please try again.', 'error');
-            } finally {
-                hideLoading();
+                set(ref(database, 'tasks'), clearedTasks);
             }
         };
 
         window.removeLastPlayer = async function() {
             const playerIds = Object.keys(gameData.players);
             if (playerIds.length === 0) {
-                showToast('No players to remove', 'warning');
+                alert('No players to remove');
                 return;
             }
 
             const lastPlayerId = playerIds[playerIds.length - 1];
             const lastPlayer = gameData.players[lastPlayerId];
             
-            if (!confirm(`👤 Remove player "${lastPlayer.name}"?\n\nThis will:\n• Remove the player from the game\n• Reset all tasks they completed\n• Cannot be undone`)) {
-                return;
-            }
-
-            showLoading();
-            
-            try {
-                // Remove player
-                await remove(ref(database, `players/${lastPlayerId}`));
-                
-                // Reset their tasks
-                const updatedTasks = {};
-                Object.entries(gameData.tasks).forEach(([id, task]) => {
-                    if (task.completedBy === lastPlayerId) {
-                        updatedTasks[id] = {
-                            name: task.name,
-                            completed: false,
-                            completedBy: null
-                        };
-                    } else {
-                        updatedTasks[id] = {
-                            name: task.name,
-                            completed: task.completed || false,
-                            completedBy: task.completedBy || null
-                        };
+            if (confirm(`Remove player "${lastPlayer.name}"? Their completed tasks will be reset.`)) {
+                try {
+                    // Remove player
+                    await remove(ref(database, `players/${lastPlayerId}`));
+                    
+                    // Reset their tasks
+                    const updatedTasks = {};
+                    Object.entries(gameData.tasks).forEach(([id, task]) => {
+                        if (task.completedBy === lastPlayerId) {
+                            updatedTasks[id] = {
+                                name: task.name, // Keep the task name
+                                completed: false,
+                                completedBy: null
+                            };
+                        } else {
+                            updatedTasks[id] = {
+                                name: task.name,
+                                completed: task.completed || false,
+                                completedBy: task.completedBy || null
+                            };
+                        }
+                    });
+                    await set(ref(database, 'tasks'), updatedTasks);
+                    
+                    // Clear current player if it was the removed one
+                    if (currentPlayerId === lastPlayerId) {
+                        currentPlayerId = null;
+                        updateCurrentPlayer();
                     }
-                });
-                await set(ref(database, 'tasks'), updatedTasks);
-                
-                // Clear current player if removed
-                if (currentPlayerId === lastPlayerId) {
-                    currentPlayerId = null;
-                    updateCurrentPlayer();
+                } catch (error) {
+                    console.error('Error removing player:', error);
+                    alert('Failed to remove player. Please try again.');
                 }
-                
-                showToast(`Player "${lastPlayer.name}" removed! 👋`);
-                
-            } catch (error) {
-                console.error('Error removing player:', error);
-                showToast('Failed to remove player. Please try again.', 'error');
-            } finally {
-                hideLoading();
             }
         };
 
@@ -714,29 +1067,16 @@
             editMode = !editMode;
             document.getElementById('editModeStatus').textContent = editMode ? 'ON' : 'OFF';
             document.getElementById('editModeIndicator').style.display = editMode ? 'inline-block' : 'none';
-            
             const adminStatus = document.getElementById('adminStatus');
             if (editMode) {
                 adminStatus.classList.add('active');
-                adminStatus.innerHTML = '⚠️ Edit mode: <span id="editModeStatus">ON</span><br><small>Double-click tasks to edit names.<br>Task completion is disabled.</small>';
-                showToast('Edit mode activated! Double-click tasks to edit. ✏️', 'warning');
+                adminStatus.innerHTML = '⚠️ Edit mode: <span id="editModeStatus">ON</span><br><small>Double-click tasks to edit. Completion disabled.</small>';
             } else {
                 adminStatus.classList.remove('active');
                 adminStatus.innerHTML = 'Edit mode: <span id="editModeStatus">OFF</span>';
-                showToast('Edit mode deactivated! Normal gameplay resumed. 🎮');
             }
             updateTaskGrid();
         };
-
-        // Click outside to close admin panel
-        document.addEventListener('click', function(e) {
-            const adminPanel = document.getElementById('adminPanel');
-            const adminToggle = document.getElementById('adminToggle');
-            
-            if (!adminPanel.contains(e.target) && !adminToggle.contains(e.target)) {
-                adminPanel.classList.remove('show');
-            }
-        });
 
         // Initialize the game
         initializeGame();
