@@ -597,6 +597,21 @@
         </div>
     </div>
 
+    <!-- Edit Task Modal -->
+    <div class="password-modal" id="editModal">
+        <div class="password-content">
+            <h3>📝 Edit Task</h3>
+            <input type="text" id="editInput" class="password-input" placeholder="Enter task name" maxlength="100">
+            <div class="password-buttons">
+                <button class="password-cancel" onclick="cancelEdit()">Cancel</button>
+                <button class="password-ok" onclick="confirmEdit()">Save</button>
+            </div>
+            <div class="edit-hint" style="font-size: 0.8rem; color: #666; margin-top: 0.5rem; text-align: center;">
+                Double-click tasks to edit • Right-click completed tasks to cancel
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
@@ -621,6 +636,7 @@
         let editMode = false;
         let adminClickCount = 0;
         let adminClickTimer = null;
+        let currentEditTaskId = null;
         let gameData = {
             players: {},
             tasks: {}
@@ -645,6 +661,40 @@
             "Get 8 headshots in a row", "Crash the game", "Plant and harvest 3 different plants", "In a character creator, make Dio Brando", "Heal exactly 50HP in one burst"
         ];
 
+        // Recalculate scores based on current task completions
+        async function recalculateScores() {
+            const playerScores = {};
+            
+            // Initialize all player scores to 0
+            Object.keys(gameData.players).forEach(playerId => {
+                playerScores[playerId] = 0;
+            });
+            
+            // Count completed tasks for each player
+            Object.values(gameData.tasks).forEach(task => {
+                if (task.completed && task.completedBy && playerScores.hasOwnProperty(task.completedBy)) {
+                    playerScores[task.completedBy]++;
+                }
+            });
+            
+            // Update scores in database
+            const updates = {};
+            Object.entries(playerScores).forEach(([playerId, score]) => {
+                if (gameData.players[playerId]) {
+                    updates[`players/${playerId}/score`] = score;
+                }
+            });
+            
+            if (Object.keys(updates).length > 0) {
+                try {
+                    // Use a single update operation for better performance
+                    await set(ref(database), updates);
+                } catch (error) {
+                    console.error('Error updating scores:', error);
+                }
+            }
+        }
+
         // Initialize game
         function initializeGame() {
             // Set up database listeners
@@ -666,6 +716,8 @@
                     gameData.tasks = data;
                     updateTaskGrid();
                     updateGameStatus();
+                    // Recalculate scores to ensure they're accurate
+                    recalculateScores();
                 }
             });
         }
@@ -850,13 +902,7 @@
                     completedBy: currentPlayerId
                 });
 
-                // Update player score
-                const playerRef = ref(database, `players/${currentPlayerId}`);
-                const currentScore = gameData.players[currentPlayerId].score || 0;
-                await set(playerRef, {
-                    ...gameData.players[currentPlayerId],
-                    score: currentScore + 1
-                });
+                // Scores will be automatically recalculated when tasks update
             } catch (error) {
                 console.error('Error completing task:', error);
                 alert('Failed to complete task. Please try again.');
@@ -870,24 +916,67 @@
             const task = gameData.tasks[taskId];
             if (!task) return;
             
-            const newName = prompt('Edit task name:', task.name);
-            
-            if (newName && newName.trim()) {
-                const taskRef = ref(database, `tasks/${taskId}`);
-                const updatedTask = {
-                    name: newName.trim(),
-                    completed: task.completed || false,
-                    completedBy: task.completedBy || null
-                };
-                
-                set(taskRef, updatedTask).then(() => {
-                    console.log('Task updated successfully');
-                }).catch((error) => {
-                    console.error('Error updating task:', error);
-                    alert('Failed to update task. Please try again.');
-                });
-            }
+            currentEditTaskId = taskId;
+            showEditModal(task.name);
         }
+
+        // Show edit modal
+        function showEditModal(currentName) {
+            const modal = document.getElementById('editModal');
+            const input = document.getElementById('editInput');
+            
+            input.value = currentName;
+            modal.classList.add('show');
+            
+            // Focus and select all text for easy editing
+            setTimeout(() => {
+                input.focus();
+                input.select();
+            }, 100);
+        }
+
+        // Cancel edit
+        window.cancelEdit = function() {
+            document.getElementById('editModal').classList.remove('show');
+            document.getElementById('editInput').value = '';
+            currentEditTaskId = null;
+        };
+
+        // Confirm edit
+        window.confirmEdit = function() {
+            const newName = document.getElementById('editInput').value.trim();
+            
+            if (!newName) {
+                alert('Task name cannot be empty');
+                return;
+            }
+            
+            if (!currentEditTaskId) {
+                cancelEdit();
+                return;
+            }
+            
+            const task = gameData.tasks[currentEditTaskId];
+            if (!task) {
+                cancelEdit();
+                return;
+            }
+            
+            const taskRef = ref(database, `tasks/${currentEditTaskId}`);
+            const updatedTask = {
+                name: newName,
+                completed: task.completed || false,
+                completedBy: task.completedBy || null
+            };
+            
+            set(taskRef, updatedTask).then(() => {
+                console.log('Task updated successfully');
+                cancelEdit();
+            }).catch((error) => {
+                console.error('Error updating task:', error);
+                alert('Failed to update task. Please try again.');
+            });
+        };
 
         // Cancel task (admin feature)
         async function cancelTask(taskId) {
@@ -903,15 +992,7 @@
                     completedBy: null
                 });
 
-                // Update player score
-                if (task.completedBy && gameData.players[task.completedBy]) {
-                    const playerRef = ref(database, `players/${task.completedBy}`);
-                    const currentScore = gameData.players[task.completedBy].score || 0;
-                    await set(playerRef, {
-                        ...gameData.players[task.completedBy],
-                        score: Math.max(0, currentScore - 1)
-                    });
-                }
+                // Scores will be automatically recalculated when tasks update
             } catch (error) {
                 console.error('Error canceling task:', error);
                 alert('Failed to cancel task. Please try again.');
@@ -987,6 +1068,38 @@
             }
         });
 
+        // Allow Enter key to confirm edit
+        document.getElementById('editInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                confirmEdit();
+            }
+        });
+
+        // Allow Escape key to cancel modals
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (document.getElementById('passwordModal').classList.contains('show')) {
+                    cancelPassword();
+                }
+                if (document.getElementById('editModal').classList.contains('show')) {
+                    cancelEdit();
+                }
+            }
+        });
+
+        // Close modals when clicking outside
+        document.getElementById('passwordModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cancelPassword();
+            }
+        });
+
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cancelEdit();
+            }
+        });
+
         // Admin functions
         window.resetGame = async function() {
             if (confirm('Reset the entire game? This will remove all players and tasks.')) {
@@ -1003,17 +1116,23 @@
             }
         };
 
-        window.clearTasks = function() {
-            if (confirm('Clear all completed tasks? Players will keep their scores.')) {
-                const clearedTasks = {};
-                Object.entries(gameData.tasks).forEach(([id, task]) => {
-                    clearedTasks[id] = {
-                        name: task.name, // Keep the current task name (including edits)
-                        completed: false,
-                        completedBy: null
-                    };
-                });
-                set(ref(database, 'tasks'), clearedTasks);
+        window.clearTasks = async function() {
+            if (confirm('Clear all completed tasks? This will reset all scores to 0.')) {
+                try {
+                    const clearedTasks = {};
+                    Object.entries(gameData.tasks).forEach(([id, task]) => {
+                        clearedTasks[id] = {
+                            name: task.name, // Keep the current task name (including edits)
+                            completed: false,
+                            completedBy: null
+                        };
+                    });
+                    await set(ref(database, 'tasks'), clearedTasks);
+                    // Scores will be automatically recalculated when tasks update
+                } catch (error) {
+                    console.error('Error clearing tasks:', error);
+                    alert('Failed to clear tasks. Please try again.');
+                }
             }
         };
 
@@ -1056,6 +1175,8 @@
                         currentPlayerId = null;
                         updateCurrentPlayer();
                     }
+                    
+                    // Scores will be automatically recalculated when tasks update
                 } catch (error) {
                     console.error('Error removing player:', error);
                     alert('Failed to remove player. Please try again.');
@@ -1070,7 +1191,7 @@
             const adminStatus = document.getElementById('adminStatus');
             if (editMode) {
                 adminStatus.classList.add('active');
-                adminStatus.innerHTML = '⚠️ Edit mode: <span id="editModeStatus">ON</span><br><small>Double-click tasks to edit. Completion disabled.</small>';
+                adminStatus.innerHTML = '⚠️ Edit mode: <span id="editModeStatus">ON</span><br><small>Double-click to edit • Right-click completed tasks to cancel</small>';
             } else {
                 adminStatus.classList.remove('active');
                 adminStatus.innerHTML = 'Edit mode: <span id="editModeStatus">OFF</span>';
